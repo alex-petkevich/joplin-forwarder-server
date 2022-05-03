@@ -27,17 +27,24 @@ import by.homesite.joplinforwarder.security.services.UserDetailsImpl;
 @Service
 public class UserService
 {
-	@Autowired
-	AuthenticationManager authenticationManager;
-	@Autowired
-	JwtUtils jwtUtils;
-	@Autowired
-	UserRepository userRepository;
-	@Autowired
-	PasswordEncoder encoder;
+	final AuthenticationManager authenticationManager;
+	final JwtUtils jwtUtils;
+	final UserRepository userRepository;
+	final PasswordEncoder encoder;
+	private MailService mailService;
 
 	@Value("${joplinforwarder.app.default_lang}")
 	private String defaultLang;
+
+	public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository,
+			PasswordEncoder encoder, MailService mailService)
+	{
+		this.authenticationManager = authenticationManager;
+		this.jwtUtils = jwtUtils;
+		this.userRepository = userRepository;
+		this.encoder = encoder;
+		this.mailService = mailService;
+	}
 
 	public JwtResponse authenticate(String username, String password)
 	{
@@ -83,6 +90,8 @@ public class UserService
 		user.setActivationKey(generateActivationKey());	
 		user.setRoles(roles);
 		userRepository.save(user);
+		
+		mailService.sendActivationEmail(user);
 	}
 
 	private String generateActivationKey()
