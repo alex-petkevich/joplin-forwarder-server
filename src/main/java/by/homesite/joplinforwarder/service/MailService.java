@@ -79,7 +79,7 @@ public class MailService {
             return;
         }
         Context context = new Context();
-        context.setVariable("USER", user);
+        context.setVariable("user", user);
         context.setVariable(BASE_URL, baseUrl);
         String content = templateEngine.process(templateName, context);
         sendEmail(user.getEmail(), subject, content, false, true);
@@ -88,19 +88,19 @@ public class MailService {
     @Async
     public void sendActivationEmail(User user) {
         log.debug("Sending activation email to '{}'", user.getEmail());
-        sendEmailFromTemplate(user, "mail/activationEmail", "email.activation.title");
+        sendEmailFromTemplate(user, "mail/activationEmail", "Account activation");
     }
 
     @Async
     public void sendCreationEmail(User user) {
         log.debug("Sending creation email to '{}'", user.getEmail());
-        sendEmailFromTemplate(user, "mail/creationEmail", "email.activation.title");
+        sendEmailFromTemplate(user, "mail/creationEmail", "Account created");
     }
 
     @Async
     public void sendPasswordResetMail(User user) {
         log.debug("Sending password reset email to '{}'", user.getEmail());
-        sendEmailFromTemplate(user, "mail/passwordResetEmail", "email.reset.title");
+        sendEmailFromTemplate(user, "mail/passwordResetEmail", "Password Reset");
     }
 
 }

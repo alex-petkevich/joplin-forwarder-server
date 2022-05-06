@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import by.homesite.joplinforwarder.controllers.dto.request.ActivateRequest;
 import by.homesite.joplinforwarder.model.ERole;
 import by.homesite.joplinforwarder.model.Role;
 import by.homesite.joplinforwarder.controllers.dto.request.LoginRequest;
@@ -62,6 +63,14 @@ public class AccountController
 		userService.saveUser(signUpRequest, roles);
 		
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+	}
+
+	@PostMapping("/activate")
+	public ResponseEntity<?> activateUser(@Valid @RequestBody ActivateRequest activateRequest)
+	{
+		JwtResponse response = userService.activate(activateRequest.getKey());
+
+		return ResponseEntity.ok(response);
 	}
 
 	private Set<Role> getUserRoles(Set<String> roleList)

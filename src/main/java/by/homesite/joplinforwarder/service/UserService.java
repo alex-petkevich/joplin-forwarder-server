@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -97,5 +96,19 @@ public class UserService
 	private String generateActivationKey()
 	{
 		return UUID.randomUUID().toString();
+	}
+
+	public JwtResponse activate(String key)
+	{
+		User user = userRepository.findByActivationKey(key).orElse(null);
+		if (user != null) {
+			user.setActivationKey("");
+			user.setActive(1);
+			user.setLastModifiedAt(OffsetDateTime.now());
+			userRepository.save(user);
+			return new JwtResponse(null, user.getId(), user.getUsername(), user.getEmail(), null);
+		}
+		
+		return new JwtResponse(null, null, null, null, null);
 	}
 }

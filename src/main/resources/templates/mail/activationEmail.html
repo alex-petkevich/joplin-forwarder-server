@@ -3,13 +3,15 @@
   <head>
     <title>Account activation</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}" />
+    <link rel="icon" th:href="@{|${baseUrl}favicon.ico|}" />
   </head>
   <body>
-    <p>Dear ${USER.login}</p>
+    <p>Dear <span th:text="${user.username}">User</span></p>
     <p>Your account has been created, please click on the URL below to activate it:</p>
     <p>
-      <a th:with="url=(@{|${baseUrl}/account/activate?key=${USER.activationKey}|})">Activation link</a>
+      <a href="activation"  
+         th:href="@{|${baseUrl}login/activate?key=${user.activationKey}|}">Activation link</a> <br />
+      [[${baseUrl}]]account/activate?key=[[${user.activationKey}]]
     </p>
     <p>
       <span>Regards, </span>

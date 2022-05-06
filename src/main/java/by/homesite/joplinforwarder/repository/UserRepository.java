@@ -11,6 +11,7 @@ import by.homesite.joplinforwarder.model.User;
 public interface UserRepository extends JpaRepository<User, Long>
 {
 	Optional<User> findByUsername(String username);
+	Optional<User> findByActivationKey(String key);
 	Boolean existsByUsername(String username);
 	Boolean existsByEmail(String email);
 }
