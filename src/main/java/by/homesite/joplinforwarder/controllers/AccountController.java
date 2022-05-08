@@ -8,9 +8,12 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import by.homesite.joplinforwarder.controllers.dto.request.ActivateRequest;
@@ -22,6 +25,7 @@ import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.repository.RoleRepository;
 import by.homesite.joplinforwarder.service.UserService;
+import lombok.extern.java.Log;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -69,6 +73,30 @@ public class AccountController
 	public ResponseEntity<?> activateUser(@Valid @RequestBody ActivateRequest activateRequest)
 	{
 		JwtResponse response = userService.activate(activateRequest.getKey());
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/forgot-password/{key}")
+	public ResponseEntity<?> forgotPassword(@Valid @PathVariable String key)
+	{
+		MessageResponse response = userService.forgotPasswordSend(key);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("/password-reset")
+	public ResponseEntity<?> passwordReset(@Valid @RequestBody LoginRequest loginRequest)
+	{
+		MessageResponse response = userService.changePassword(loginRequest.getUsername(), loginRequest.getPassword());
+
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("/check-key")
+	public ResponseEntity<?> checkKey(@Valid @RequestBody ActivateRequest activateRequest)
+	{
+		MessageResponse response = userService.checkResetKey(activateRequest.getKey());
 
 		return ResponseEntity.ok(response);
 	}

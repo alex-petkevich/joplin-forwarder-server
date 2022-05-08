@@ -1,6 +1,7 @@
 package by.homesite.joplinforwarder.service;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
+import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.model.Role;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.UserRepository;
@@ -110,5 +112,44 @@ public class UserService
 		}
 		
 		return new JwtResponse(null, null, null, null, null);
+	}
+
+	public MessageResponse forgotPasswordSend(String key)
+	{
+		User user = userRepository.findForResetPassword(key).orElse(null);
+		if (user != null) {
+			user.setActivationKey(generateActivationKey());
+			user.setLastModifiedAt(OffsetDateTime.now());
+			userRepository.save(user);
+
+			mailService.sendPasswordResetMail(user);
+			return new MessageResponse("successful");
+		}
+
+		return new MessageResponse("");
+	}
+
+	public MessageResponse checkResetKey(String key)
+	{
+		User user = userRepository.findByActivationKey(key).orElse(null);
+		if (user != null && user.getActive() == 1) {
+			return new MessageResponse("successful");
+		}
+		return new MessageResponse("");
+	}
+
+	public MessageResponse changePassword(String username, String password)
+	{
+		User user = userRepository.findByActivationKey(username).orElse(null);
+		if (user != null) {
+			user.setPassword(encoder.encode(password));
+			user.setActivationKey("");
+			user.setLastModifiedAt(OffsetDateTime.now());
+			userRepository.save(user);
+			
+			return new MessageResponse("successful");
+		}
+		
+		return new MessageResponse("");
 	}
 }
