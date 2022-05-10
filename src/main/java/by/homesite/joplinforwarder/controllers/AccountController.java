@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import by.homesite.joplinforwarder.controllers.dto.request.ActivateRequest;
@@ -25,7 +24,6 @@ import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.repository.RoleRepository;
 import by.homesite.joplinforwarder.service.UserService;
-import lombok.extern.java.Log;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -64,7 +62,7 @@ public class AccountController
 		// Create new user's account
 		Set<Role> roles = getUserRoles(signUpRequest.getRole());
 
-		userService.saveUser(signUpRequest, roles);
+		userService.createUser(signUpRequest, roles);
 		
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}

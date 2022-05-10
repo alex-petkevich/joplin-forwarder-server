@@ -33,4 +33,7 @@ public class SignupRequest
 
 	@Size(max = 50)
 	private String lastname;
+
+	@Size(max = 3)
+	private String lang;
 }

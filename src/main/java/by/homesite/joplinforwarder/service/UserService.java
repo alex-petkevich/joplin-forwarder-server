@@ -3,6 +3,7 @@ package by.homesite.joplinforwarder.service;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
@@ -76,7 +78,7 @@ public class UserService
 		return userRepository.existsByEmail(email);
 	}
 
-	public void saveUser(SignupRequest signUpRequest, Set<Role> roles)
+	public void createUser(SignupRequest signUpRequest, Set<Role> roles)
 	{
 		User user = new User();
 		user.setUsername(signUpRequest.getUsername());
@@ -89,10 +91,35 @@ public class UserService
 		user.setLastModifiedAt(OffsetDateTime.now());
 		user.setLang(this.defaultLang);
 		user.setActivationKey(generateActivationKey());	
-		user.setRoles(roles);
+		if (roles != null)
+		{
+			user.setRoles(roles);
+		}
 		userRepository.save(user);
 		
 		mailService.sendActivationEmail(user);
+	}
+
+	public void saveUser(User currentUserData, SignupRequest signUpRequest, Set<Role> roles)
+	{
+		currentUserData.setUsername(signUpRequest.getUsername());
+		if (!"......".equals(signUpRequest.getPassword()))
+		{
+			currentUserData.setPassword(encoder.encode(signUpRequest.getPassword()));
+		}
+		currentUserData.setEmail(signUpRequest.getEmail());
+		currentUserData.setFirstname(signUpRequest.getFirstname());
+		currentUserData.setLastname(signUpRequest.getLastname());
+		currentUserData.setLastModifiedAt(OffsetDateTime.now());
+		if (StringUtils.hasText(signUpRequest.getLang()))
+		{
+			currentUserData.setLang(signUpRequest.getLang());
+		}
+		if (roles != null)
+		{
+			currentUserData.setRoles(roles);
+		}
+		userRepository.save(currentUserData);
 	}
 
 	private String generateActivationKey()
@@ -151,5 +178,17 @@ public class UserService
 		}
 		
 		return new MessageResponse("");
+	}
+
+	public User getCurrentUser()
+	{
+		if (!SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+			return null;
+		}
+		
+		UserDetailsImpl printcipal = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		User user = userRepository.findByUsername(printcipal.getUsername()).orElse(null);
+		
+		return user;
 	}
 }
