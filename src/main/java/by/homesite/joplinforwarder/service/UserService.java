@@ -103,10 +103,6 @@ public class UserService
 	public void saveUser(User currentUserData, SignupRequest signUpRequest, Set<Role> roles)
 	{
 		currentUserData.setUsername(signUpRequest.getUsername());
-		if (!"......".equals(signUpRequest.getPassword()))
-		{
-			currentUserData.setPassword(encoder.encode(signUpRequest.getPassword()));
-		}
 		currentUserData.setEmail(signUpRequest.getEmail());
 		currentUserData.setFirstname(signUpRequest.getFirstname());
 		currentUserData.setLastname(signUpRequest.getLastname());
