@@ -1,4 +1,4 @@
-package by.homesite.joplinforwarder.security;
+package by.homesite.joplinforwarder.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

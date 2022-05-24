@@ -18,7 +18,6 @@ import by.homesite.joplinforwarder.controllers.mapper.UserMapper;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.UserService;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/user")
 public class UserController {

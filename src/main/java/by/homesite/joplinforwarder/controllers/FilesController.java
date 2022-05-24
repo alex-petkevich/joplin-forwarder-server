@@ -9,7 +9,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +22,6 @@ import by.homesite.joplinforwarder.model.FileInfo;
 import by.homesite.joplinforwarder.service.FilesStorageService;
 
 @Controller
-@CrossOrigin("http://localhost:8081")
 public class FilesController
 {
 	@Autowired

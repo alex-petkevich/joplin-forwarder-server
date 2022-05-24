@@ -25,7 +25,6 @@ import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.repository.RoleRepository;
 import by.homesite.joplinforwarder.service.UserService;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/account")
 public class AccountController

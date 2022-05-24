@@ -35,7 +35,7 @@ public class MailService {
     @Value("${joplinforwarder.mail.from}")
     private String fromMail;
 
-    @Value("${joplinforwarder.mail.baseUrl}")
+    @Value("$§joplinforwarder.mail.baseUrl}")
     private String baseUrl;
 
     public MailService(
