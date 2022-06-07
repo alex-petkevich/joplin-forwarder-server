@@ -67,7 +67,7 @@ public class FilesController
 	
 	@GetMapping("/avatar/{userId}")
 	public ResponseEntity<?> getAvatar(@PathVariable String userId) {
-		
+		//https://careydevelopment.us/blog/angular-how-to-fetch-and-display-images-with-a-spring-boot-rest-service
 		return null;
 	}
 
