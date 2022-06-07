@@ -1,14 +1,19 @@
 package by.homesite.joplinforwarder.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,14 +21,23 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 {
-	private final Path root = Paths.get("uploads");
+	private String localPath;
+	
+	private String uploadDir;
+	
+	public FilesystemFilesStorageServiceImpl(@Value("${joplinforwarder.upload.local-path}") String localPath,
+			@Value("${joplinforwarder.upload.upload-dir}") String uploadDir)
+	{
+		this.localPath = localPath;
+		this.uploadDir = uploadDir;
+	}
 
 	@Override
 	public void init()
 	{
 		try
 		{
-			Files.createDirectory(root);
+			Files.createDirectory(getUserDir());
 		}
 		catch (IOException e)
 		{
@@ -34,9 +48,10 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void save(MultipartFile file)
 	{
+		init();
 		try
 		{
-			Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
+			Files.copy(file.getInputStream(), getUserDir().resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (Exception e)
 		{
@@ -49,7 +64,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	{
 		try
 		{
-			Path file = root.resolve(filename);
+			Path file = getUserDir().resolve(filename);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable())
 			{
@@ -69,7 +84,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void deleteAll()
 	{
-		FileSystemUtils.deleteRecursively(root.toFile());
+		FileSystemUtils.deleteRecursively(getUserDir().toFile());
 	}
 
 	@Override
@@ -77,11 +92,22 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	{
 		try
 		{
-			return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
+			Path root = getUserDir();
+			return Files.walk(root, 1).filter(path -> !path.equals(root)).map(root::relativize);
 		}
 		catch (IOException e)
 		{
 			throw new RuntimeException("Could not load the files!");
 		}
+	}
+
+	private Path getUserDir()
+	{
+		String uploadUserDir = this.localPath + this.uploadDir + File.separator;
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null) {
+			uploadUserDir += authentication.getName() + File.separator;
+		}
+		return Paths.get( uploadUserDir );
 	}
 }
