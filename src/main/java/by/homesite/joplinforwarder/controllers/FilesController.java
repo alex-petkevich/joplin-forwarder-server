@@ -1,15 +1,23 @@
 package by.homesite.joplinforwarder.controllers;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import by.homesite.joplinforwarder.model.User;
+import by.homesite.joplinforwarder.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +41,9 @@ public class FilesController
 	@Autowired
 	FilesStorageService storageService;
 
+	@Autowired
+	UserService userService;
+
 	@Value("${joplinforwarder.app.baseUrl}")
 	String baseUrl;
 
@@ -42,6 +53,9 @@ public class FilesController
 		String message = "";
 		try
 		{
+			// temporary hack, only avatar upload supported
+			storageService.deleteAll();
+
 			storageService.save(file);
 			message = "Uploaded the file successfully: " + file.getOriginalFilename();
 			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
@@ -67,8 +81,25 @@ public class FilesController
 	
 	@GetMapping("/avatar/{userId}")
 	public ResponseEntity<?> getAvatar(@PathVariable String userId) {
-		//https://careydevelopment.us/blog/angular-how-to-fetch-and-display-images-with-a-spring-boot-rest-service
-		return null;
+		if (userService.isUsernameExists(userId)) {
+			try {
+				Stream<Path> fileInfos = storageService.loadAllByUsername(userId);
+				if (fileInfos.findAny().isPresent()) {
+					Path avatar = fileInfos.findAny().get();
+					ByteArrayResource resource = null;
+					resource = new ByteArrayResource(Files.readAllBytes(avatar));
+					return ResponseEntity
+							.ok()
+							.contentLength(avatar.toFile().length())
+							.contentType(MediaType.IMAGE_JPEG)
+							.body(resource);
+				}
+			} catch (IOException e) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			}
+		}
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 
 	@GetMapping("/list/{filename:.+}")
