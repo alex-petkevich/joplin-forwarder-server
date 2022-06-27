@@ -7,10 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import by.homesite.joplinforwarder.model.FileInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -19,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.expression.Lists;
 
 @Service
 public class FilesystemFilesStorageServiceImpl implements FilesStorageService
@@ -55,7 +57,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	public void save(MultipartFile file)
 	{
 		Path dir = getUserDir();
-		if (dir == null) {
+		if (dir == null || file.getOriginalFilename() == null) {
 			return;
 		}
 
@@ -110,23 +112,23 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	}
 
 	@Override
-	public Stream<Path> loadAll()
+	public List<Path> loadAll()
 	{
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
-			return Stream.empty();
+			return Collections.emptyList();
 		}
 
 		return loadAllByUsername(authentication.getName());
 	}
 
 	@Override
-	public Stream<Path> loadAllByUsername(String userId) {
+	public List<Path> loadAllByUsername(String userId) {
 		Path userDir = Paths.get(this.localPath + this.uploadDir + File.separator + userId + File.separator);
 
 		try
 		{
-			return Files.walk(userDir, 1).filter(path -> !path.equals(userDir)).map(userDir::relativize);
+			return Files.walk(userDir, 1).filter(path -> !path.equals(userDir)).map(userDir::relativize).collect(Collectors.toList());
 		}
 		catch (IOException e)
 		{

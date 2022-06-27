@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,7 +72,7 @@ public class FilesController
 	public ResponseEntity<List<FileInfo>> getListFiles()
 	{
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
+		List<FileInfo> fileInfos = storageService.loadAll().stream().map(path -> {
 			String filename = path.getFileName().toString();
 			String url = baseUrl + "api/files/avatar/" + URLEncoder.encode(authentication.getName(), StandardCharsets.UTF_8);
 			return new FileInfo(filename, url);
@@ -83,9 +84,9 @@ public class FilesController
 	public ResponseEntity<?> getAvatar(@PathVariable String userId) {
 		if (userService.isUsernameExists(userId)) {
 			try {
-				Stream<Path> fileInfos = storageService.loadAllByUsername(userId);
-				if (fileInfos.findAny().isPresent()) {
-					Path avatar = fileInfos.findAny().get();
+				List<Path> fileInfos = storageService.loadAllByUsername(userId);
+				if (!fileInfos.isEmpty()) {
+					Path avatar = fileInfos.get(0);
 					ByteArrayResource resource = null;
 					resource = new ByteArrayResource(Files.readAllBytes(avatar));
 					return ResponseEntity
