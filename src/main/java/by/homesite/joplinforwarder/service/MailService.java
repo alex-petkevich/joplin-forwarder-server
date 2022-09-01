@@ -3,8 +3,11 @@ package by.homesite.joplinforwarder.service;
 import java.nio.charset.StandardCharsets;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+
+import by.homesite.joplinforwarder.config.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,12 +34,9 @@ public class MailService {
     private final JavaMailSender javaMailSender;
 
     private final SpringTemplateEngine templateEngine;
-    
-    @Value("${joplinforwarder.mail.from}")
-    private String fromMail;
 
-    @Value("$§joplinforwarder.mail.baseUrl}")
-    private String baseUrl;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     public MailService(
         JavaMailSender javaMailSender,
@@ -62,7 +62,7 @@ public class MailService {
         try {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name());
             message.setTo(to);
-            message.setFrom(fromMail);
+            message.setFrom(applicationProperties.getMail().getFrom());
             message.setSubject(subject);
             message.setText(content, isHtml);
             javaMailSender.send(mimeMessage);
@@ -80,7 +80,7 @@ public class MailService {
         }
         Context context = new Context();
         context.setVariable("user", user);
-        context.setVariable(BASE_URL, baseUrl);
+        context.setVariable(BASE_URL, applicationProperties.getGeneral().getBaseUrl());
         String content = templateEngine.process(templateName, context);
         sendEmail(user.getEmail(), subject, content, false, true);
     }

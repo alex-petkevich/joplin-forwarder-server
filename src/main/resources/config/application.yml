@@ -1,0 +1,50 @@
+logging:
+  level:
+    ROOT: INFO
+    by:
+      homesite:
+        joplinforwarder: INFO
+spring:
+  application:
+    name: forwader-server
+  profiles:
+    active: dev
+    group:
+      dev: 'dev, api-docs'
+  jmx:
+    enabled: false
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: deferred
+  datasource:
+    flyway:
+      locations: 'classpath:/db/migration'
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    prefix: 'classpath:/templates/'
+    suffix: '.html'
+
+# App Properties
+application:
+  general:
+    jwtSecret: joplinforwarderSecretKey
+    jwtExpirationMs: '86400000'
+    default_lang: en
+  cors:
+    allowed-methods: '*'
+    allowed-headers: '*'
+    exposed-headers: 'Link,X-Total-Count,X-joplin-alert,X-joplin-error,X-joplin-params'
+    allow-credentials: true
+    max-age: '1800'

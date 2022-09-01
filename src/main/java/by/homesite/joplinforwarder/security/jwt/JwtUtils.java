@@ -2,8 +2,10 @@ package by.homesite.joplinforwarder.security.jwt;
 
 import java.util.Date;
 
+import by.homesite.joplinforwarder.config.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -18,23 +20,24 @@ import io.jsonwebtoken.UnsupportedJwtException;
 
 @Component
 public class JwtUtils {
+
 	private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-	@Value("${joplinforwarder.app.jwtSecret}")
-	private String jwtSecret;
-	@Value("${joplinforwarder.app.jwtExpirationMs}")
-	private int jwtExpirationMs;
+
+	@Autowired
+	private ApplicationProperties applicationProperties;
+
 	public String generateJwtToken(Authentication authentication) {
 		UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 		return Jwts.builder().setSubject((userPrincipal.getUsername())).setIssuedAt(new Date())
-				.setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)).signWith(SignatureAlgorithm.HS512, jwtSecret)
+				.setExpiration(new Date((new Date()).getTime() + applicationProperties.getGeneral().getJwtExpirationMs())).signWith(SignatureAlgorithm.HS512, applicationProperties.getGeneral().getJwtSecret())
 				.compact();
 	}
 	public String getUserNameFromJwtToken(String token) {
-		return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+		return Jwts.parser().setSigningKey(applicationProperties.getGeneral().getJwtSecret()).parseClaimsJws(token).getBody().getSubject();
 	}
 	public boolean validateJwtToken(String authToken) {
 		try {
-			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+			Jwts.parser().setSigningKey(applicationProperties.getGeneral().getJwtSecret()).parseClaimsJws(authToken);
 			return true;
 		} catch (SignatureException e) {
 			logger.error("Invalid JWT signature: {}", e.getMessage());

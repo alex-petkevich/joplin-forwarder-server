@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import by.homesite.joplinforwarder.config.ApplicationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,8 +38,8 @@ public class UserService
 	final PasswordEncoder encoder;
 	private MailService mailService;
 
-	@Value("${joplinforwarder.app.default_lang}")
-	private String defaultLang;
+	@Autowired
+	private ApplicationProperties applicationProperties;
 
 	public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository,
 			PasswordEncoder encoder, MailService mailService)
@@ -89,7 +91,7 @@ public class UserService
 		user.setActive(0);
 		user.setCreatedAt(OffsetDateTime.now());
 		user.setLastModifiedAt(OffsetDateTime.now());
-		user.setLang(this.defaultLang);
+		user.setLang(applicationProperties.getGeneral().getDefault_lang());
 		user.setActivationKey(generateActivationKey());	
 		if (roles != null)
 		{

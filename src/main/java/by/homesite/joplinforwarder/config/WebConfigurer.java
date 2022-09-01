@@ -3,6 +3,7 @@ package by.homesite.joplinforwarder.config;
 import javax.servlet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
@@ -25,24 +26,9 @@ public class WebConfigurer implements ServletContextInitializer {
     private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
 
     private final Environment env;
-    
-    @Value("${joplinforwarder.cors.allowed-origins}")
-    private String allowedOrigin;
 
-    @Value("${joplinforwarder.cors.allowed-methods}")
-    private String allowedMethods;
-
-    @Value("${joplinforwarder.cors.allowed-headers}")
-    private String allowedHeaders;
-
-    @Value("${joplinforwarder.cors.exposed-headers}")
-    private String exposedHeaders;
-
-    @Value("${joplinforwarder.cors.allow-credentials}")
-    private String allowedCredentials;
-
-    @Value("${joplinforwarder.cors.max-age}")
-    private String maxAge;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     public WebConfigurer(Environment env) {
         this.env = env;
@@ -61,12 +47,12 @@ public class WebConfigurer implements ServletContextInitializer {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin(allowedOrigin);
-        config.addAllowedHeader(allowedHeaders);
-        config.addAllowedMethod(allowedMethods);
-        config.addExposedHeader(exposedHeaders);
-        config.setAllowCredentials(Boolean.parseBoolean(allowedCredentials));
-        config.setMaxAge(Long.parseLong(maxAge));
+        config.addAllowedOrigin(applicationProperties.getCors().getAllowedOrigins());
+        config.addAllowedHeader(applicationProperties.getCors().getAllowedHeaders());
+        config.addAllowedMethod(applicationProperties.getCors().getAllowedMethods());
+        config.addExposedHeader(applicationProperties.getCors().getExposedHeaders());
+        config.setAllowCredentials(Boolean.parseBoolean(applicationProperties.getCors().getAllowCredentials()));
+        config.setMaxAge(Long.parseLong(applicationProperties.getCors().getMaxAge()));
         
         if (!CollectionUtils.isEmpty(config.getAllowedOrigins()) || !CollectionUtils.isEmpty(config.getAllowedOriginPatterns())) {
             log.debug("Registering CORS filter");

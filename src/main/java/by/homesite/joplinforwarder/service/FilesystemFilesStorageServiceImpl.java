@@ -9,9 +9,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import by.homesite.joplinforwarder.config.ApplicationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -20,32 +22,28 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.thymeleaf.expression.Lists;
 
 @Service
 public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 {
-	private String localPath;
-	
-	private String uploadDir;
-	
-	public FilesystemFilesStorageServiceImpl(@Value("${joplinforwarder.upload.local-path}") String localPath,
-			@Value("${joplinforwarder.upload.upload-dir}") String uploadDir)
+	private final ApplicationProperties applicationProperties;
+	private final Path userDir;
+
+	public FilesystemFilesStorageServiceImpl(@Autowired ApplicationProperties applicationProperties)
 	{
-		this.localPath = localPath;
-		this.uploadDir = uploadDir;
+		this.applicationProperties = applicationProperties;
+		this.userDir = getUserDir();
 	}
 
 	@Override
 	public void init()
 	{
-		Path dir = getUserDir();
-		if (dir == null) {
+		if (this.userDir == null) {
 			return;
 		}
 		try
 		{
-			Files.createDirectory(dir);
+			Files.createDirectory(this.userDir);
 		}
 		catch (IOException e)
 		{
@@ -56,8 +54,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void save(MultipartFile file)
 	{
-		Path dir = getUserDir();
-		if (dir == null || file.getOriginalFilename() == null) {
+		if (this.userDir == null || file.getOriginalFilename() == null) {
 			return;
 		}
 
@@ -65,7 +62,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 
 		try
 		{
-			Files.copy(file.getInputStream(), dir.resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(file.getInputStream(), this.userDir.resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (Exception e)
 		{
@@ -76,14 +73,13 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public Resource load(String filename)
 	{
-		Path dir = getUserDir();
-		if (dir == null) {
+		if (this.userDir == null) {
 			return null;
 		}
 
 		try
 		{
-			Path file = dir.resolve(filename);
+			Path file = this.userDir.resolve(filename);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable())
 			{
@@ -103,12 +99,11 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void deleteAll()
 	{
-		Path dir = getUserDir();
-		if (dir == null) {
+		if (this.userDir == null) {
 			return;
 		}
 
-		FileSystemUtils.deleteRecursively(dir.toFile());
+		FileSystemUtils.deleteRecursively(this.userDir.toFile());
 	}
 
 	@Override
@@ -124,11 +119,15 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 
 	@Override
 	public List<Path> loadAllByUsername(String userId) {
-		Path userDir = Paths.get(this.localPath + this.uploadDir + File.separator + userId + File.separator);
+		Path userDir = Paths.get(getUploadDir(userId));
 
 		try
 		{
-			return Files.walk(userDir, 1).filter(path -> !path.equals(userDir)).map(userDir::relativize).collect(Collectors.toList());
+			return Files
+					.walk(userDir, 1)
+					.filter(path -> !path.equals(userDir))
+					.map(userDir::relativize)
+					.collect(Collectors.toList());
 		}
 		catch (IOException e)
 		{
@@ -138,11 +137,14 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 
 	private Path getUserDir()
 	{
-		String uploadUserDir = this.localPath + this.uploadDir + File.separator;
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null) {
-			Paths.get( uploadUserDir + authentication.getName() + File.separator);
+			return Paths.get( getUploadDir(authentication.getName()));
 		}
 		return null;
+	}
+
+	private String getUploadDir(String userId) {
+		return applicationProperties.getUpload().getLocalPath() + applicationProperties.getUpload().getUploadDir() + File.separator + userId + File.separator;
 	}
 }

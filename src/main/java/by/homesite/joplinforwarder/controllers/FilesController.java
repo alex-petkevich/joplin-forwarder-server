@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,8 @@ public class FilesController
 	@Autowired
 	UserService userService;
 
-	@Value("${joplinforwarder.app.baseUrl}")
-	String baseUrl;
+	@Autowired
+	ApplicationProperties applicationProperties;
 
 	@PostMapping("/upload")
 	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file)
@@ -74,7 +75,7 @@ public class FilesController
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		List<FileInfo> fileInfos = storageService.loadAll().stream().map(path -> {
 			String filename = path.getFileName().toString();
-			String url = baseUrl + "api/files/avatar/" + URLEncoder.encode(authentication.getName(), StandardCharsets.UTF_8);
+			String url = applicationProperties.getGeneral().getBaseUrl() + "api/files/avatar/" + URLEncoder.encode(authentication.getName(), StandardCharsets.UTF_8);
 			return new FileInfo(filename, url);
 		}).collect(Collectors.toList());
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
