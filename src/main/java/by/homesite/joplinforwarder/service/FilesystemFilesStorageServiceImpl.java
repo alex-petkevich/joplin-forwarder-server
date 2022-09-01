@@ -27,23 +27,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 {
 	private final ApplicationProperties applicationProperties;
-	private final Path userDir;
 
 	public FilesystemFilesStorageServiceImpl(@Autowired ApplicationProperties applicationProperties)
 	{
 		this.applicationProperties = applicationProperties;
-		this.userDir = getUserDir();
 	}
 
 	@Override
 	public void init()
 	{
-		if (this.userDir == null) {
+		if (getUserDir() == null) {
 			return;
 		}
 		try
 		{
-			Files.createDirectory(this.userDir);
+			Files.createDirectory(getUserDir());
 		}
 		catch (IOException e)
 		{
@@ -54,7 +52,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void save(MultipartFile file)
 	{
-		if (this.userDir == null || file.getOriginalFilename() == null) {
+		if (getUserDir() == null || file.getOriginalFilename() == null) {
 			return;
 		}
 
@@ -62,7 +60,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 
 		try
 		{
-			Files.copy(file.getInputStream(), this.userDir.resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(file.getInputStream(), getUserDir().resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (Exception e)
 		{
@@ -73,13 +71,13 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public Resource load(String filename)
 	{
-		if (this.userDir == null) {
+		if (getUserDir() == null) {
 			return null;
 		}
 
 		try
 		{
-			Path file = this.userDir.resolve(filename);
+			Path file = getUserDir().resolve(filename);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable())
 			{
@@ -99,11 +97,11 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void deleteAll()
 	{
-		if (this.userDir == null) {
+		if (getUserDir() == null) {
 			return;
 		}
 
-		FileSystemUtils.deleteRecursively(this.userDir.toFile());
+		FileSystemUtils.deleteRecursively(getUserDir().toFile());
 	}
 
 	@Override

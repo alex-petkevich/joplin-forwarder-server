@@ -1,5 +1,9 @@
 package by.homesite.joplinforwarder.security.jwt;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
@@ -28,8 +32,9 @@ public class JwtUtils {
 
 	public String generateJwtToken(Authentication authentication) {
 		UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+		Date expDate = new Date((new Date()).getTime() + Long.parseLong(applicationProperties.getGeneral().getJwtExpirationMs()));
 		return Jwts.builder().setSubject((userPrincipal.getUsername())).setIssuedAt(new Date())
-				.setExpiration(new Date((new Date()).getTime() + applicationProperties.getGeneral().getJwtExpirationMs())).signWith(SignatureAlgorithm.HS512, applicationProperties.getGeneral().getJwtSecret())
+				.setExpiration(expDate).signWith(SignatureAlgorithm.HS512, applicationProperties.getGeneral().getJwtSecret())
 				.compact();
 	}
 	public String getUserNameFromJwtToken(String token) {
