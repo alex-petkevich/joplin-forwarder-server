@@ -124,7 +124,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 			return Files
 					.walk(userDir, 1)
 					.filter(path -> !path.equals(userDir))
-					.map(userDir::relativize)
+//					.map(userDir::relativize)
 					.collect(Collectors.toList());
 		}
 		catch (IOException e)

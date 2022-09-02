@@ -75,13 +75,13 @@ public class FilesController
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		List<FileInfo> fileInfos = storageService.loadAll().stream().map(path -> {
 			String filename = path.getFileName().toString();
-			String url = applicationProperties.getGeneral().getBaseUrl() + "api/files/avatar/" + URLEncoder.encode(authentication.getName(), StandardCharsets.UTF_8);
+			String url = URLEncoder.encode(authentication.getName(), StandardCharsets.UTF_8);
 			return new FileInfo(filename, url);
 		}).collect(Collectors.toList());
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
-	
-	@GetMapping("/avatar/{userId}")
+
+	@GetMapping("/image/{userId}")
 	public ResponseEntity<?> getAvatar(@PathVariable String userId) {
 		if (userService.isUsernameExists(userId)) {
 			try {
