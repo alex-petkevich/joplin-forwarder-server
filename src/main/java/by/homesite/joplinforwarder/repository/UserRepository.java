@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long>
 	
 	Optional<User> findByActivationKey(String key);
 	
-	@Query(value = "SELECT u FROM User u WHERE (u.username = :key OR u.email = :key) AND u.lastModifiedAt > u.createdAt AND u.active = 1")
+	@Query(value = "SELECT u FROM User u WHERE (u.username = :key OR u.email = :key) AND u.lastModifiedAt > u.createdAt")
 	Optional<User> findForResetPassword(@Param("key") String key);
 	
 	Boolean existsByUsername(String username);
