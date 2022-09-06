@@ -36,12 +36,12 @@ spring:
   thymeleaf:
     cache: false
 server:
-  port: 8080
+  port: 8585
 
 # App Properties
 application:
   general:
-    baseUrl: 'http://localhost:8080/'
+    baseUrl: 'http://localhost:8585/'
   mail:
     from: support-joplin@homesite.by
     baseUrl: 'http://localhost:4200/'

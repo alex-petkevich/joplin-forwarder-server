@@ -80,7 +80,7 @@ public class MailService {
         }
         Context context = new Context();
         context.setVariable("user", user);
-        context.setVariable(BASE_URL, applicationProperties.getGeneral().getBaseUrl());
+        context.setVariable(BASE_URL, applicationProperties.getMail().getBaseUrl());
         String content = templateEngine.process(templateName, context);
         sendEmail(user.getEmail(), subject, content, false, true);
     }

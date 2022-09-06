@@ -26,6 +26,8 @@ spring:
       ddl-auto: update
   main:
     allow-bean-definition-overriding: true
+  messages:
+    basename: i18n/messages
   servlet:
     multipart:
       max-file-size: 50MB

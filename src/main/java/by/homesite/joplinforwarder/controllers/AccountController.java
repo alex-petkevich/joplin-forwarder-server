@@ -6,8 +6,9 @@ import java.util.Set;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +35,9 @@ public class AccountController
 
 	@Autowired
 	UserService userService;
+
+	@Autowired
+	private MessageSource messageSource;
 	
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
@@ -50,13 +54,13 @@ public class AccountController
 		{
 			return ResponseEntity
 					.badRequest()
-					.body(new MessageResponse("Error: Username is already taken!"));
+					.body(new MessageResponse(messageSource.getMessage("account.register-user.username-exists", null, LocaleContextHolder.getLocale())));
 		}
 		if (userService.isEmailExists(signUpRequest.getEmail()))
 		{
 			return ResponseEntity
 					.badRequest()
-					.body(new MessageResponse("Error: Email is already in use!"));
+					.body(new MessageResponse(messageSource.getMessage("account.register-user.email-exists", null, LocaleContextHolder.getLocale())));
 		}
 		
 		// Create new user's account
@@ -64,7 +68,7 @@ public class AccountController
 
 		userService.createUser(signUpRequest, roles);
 		
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+		return ResponseEntity.ok(new MessageResponse(messageSource.getMessage("account.register-user.user-registered", null, LocaleContextHolder.getLocale())));
 	}
 
 	@PostMapping("/activate")
@@ -105,7 +109,7 @@ public class AccountController
 		if (roleList == null)
 		{
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+					.orElseThrow(() -> new RuntimeException(messageSource.getMessage("account.register-user.role-not-found", null, LocaleContextHolder.getLocale())));
 			roles.add(userRole);
 		}
 		else
@@ -115,12 +119,12 @@ public class AccountController
 				{
 					case "admin":
 						Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								.orElseThrow(() -> new RuntimeException(messageSource.getMessage("account.register-user.role-not-found", null, LocaleContextHolder.getLocale())));
 						roles.add(adminRole);
 						break;
 					default:
 						Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								.orElseThrow(() -> new RuntimeException(messageSource.getMessage("account.register-user.role-not-found", null, LocaleContextHolder.getLocale())));
 						roles.add(userRole);
 				}
 			});
