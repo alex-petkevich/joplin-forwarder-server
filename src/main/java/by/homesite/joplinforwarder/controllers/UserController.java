@@ -2,9 +2,11 @@ package by.homesite.joplinforwarder.controllers;
 
 import javax.validation.Valid;
 
+import by.homesite.joplinforwarder.controllers.mapper.UserSignupRequestMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +25,13 @@ public class UserController {
 	
 	private final UserService userService;
 	private final UserMapper userMapper;
+	private final UserSignupRequestMapper userSignupRequestMapper;
 
-	public UserController(UserService userService, UserMapper userMapper)
+	public UserController(UserService userService, UserMapper userMapper, UserSignupRequestMapper userSignupRequestMapper)
 	{
 		this.userService = userService;
 		this.userMapper = userMapper;
+		this.userSignupRequestMapper = userSignupRequestMapper;
 	}
 
 	@PostMapping("/")
@@ -61,21 +65,22 @@ public class UserController {
 
 		return userMapper.toEntity(user);
 	}
-	
-	@GetMapping("/all")
-	public String allAccess() {
-		return "Public Content.";
-	}
 
-	@GetMapping("/user")
+	@PostMapping("/lang")
 	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	public String userAccess() {
-		return "User Content.";
+	public ResponseEntity<?> saveUserLang(@RequestBody SignupRequest userRequest) {
+		User currentUserData = userService.getCurrentUser();
+
+		if (currentUserData == null) {
+			return ResponseEntity.notFound().build();
+		}
+
+		SignupRequest signupRequest = userSignupRequestMapper.toEntity(currentUserData);
+		signupRequest.setLang(userRequest.getLang());
+
+		userService.saveUser(currentUserData, signupRequest, null);
+
+		return ResponseEntity.ok(new MessageResponse("Lang updated successfully"));
 	}
 
-	@GetMapping("/admin")
-	@PreAuthorize("hasRole('ADMIN')")
-	public String adminAccess() {
-		return "Admin Board.";
-	}
 }

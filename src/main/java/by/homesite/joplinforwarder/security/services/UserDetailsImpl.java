@@ -17,15 +17,16 @@ import lombok.EqualsAndHashCode;
 public class UserDetailsImpl implements UserDetails
 {
 	private static final long serialVersionUID = 1L;
-	private Long id;
-	private String username;
-	private String email;
+	private final Long id;
+	private final String username;
+	private final String email;
 	@JsonIgnore
-	private String password;
-	private Boolean active;
+	private final String password;
+	private final Boolean active;
+	private final String lang;
 	private Collection<? extends GrantedAuthority> authorities;
 
-	public UserDetailsImpl(Long id, String username, String email, String password, Boolean active,
+	public UserDetailsImpl(Long id, String username, String email, String password, Boolean active, String lang,
 			Collection<? extends GrantedAuthority> authorities)
 	{
 		this.id = id;
@@ -34,6 +35,7 @@ public class UserDetailsImpl implements UserDetails
 		this.password = password;
 		this.authorities = authorities;
 		this.active = active;
+		this.lang = lang;
 	}
 
 	public static UserDetailsImpl build(User user)
@@ -47,6 +49,7 @@ public class UserDetailsImpl implements UserDetails
 				user.getEmail(),
 				user.getPassword(),
 				user.getActive() == 1,
+				user.getLang(),
 				authorities);
 	}
 
@@ -100,5 +103,9 @@ public class UserDetailsImpl implements UserDetails
 	public boolean isEnabled()
 	{
 		return active;
+	}
+
+	public String getLang() {
+		return lang;
 	}
 }

@@ -67,6 +67,7 @@ public class UserService
 				userDetails.getId(),
 				userDetails.getUsername(),
 				userDetails.getEmail(),
+				userDetails.getLang(),
 				roles);
 	}
 
@@ -133,10 +134,10 @@ public class UserService
 			user.setActive(1);
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
-			return new JwtResponse(null, user.getId(), user.getUsername(), user.getEmail(), null);
+			return new JwtResponse(null, user.getId(), user.getUsername(), user.getEmail(), user.getLang(), null);
 		}
 		
-		return new JwtResponse(null, null, null, null, null);
+		return new JwtResponse(null, null, null, null, null, null);
 	}
 
 	public MessageResponse forgotPasswordSend(String key)
@@ -185,8 +186,7 @@ public class UserService
 		}
 		
 		UserDetailsImpl printcipal = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		User user = userRepository.findByUsername(printcipal.getUsername()).orElse(null);
-		
-		return user;
+
+		return userRepository.findByUsername(printcipal.getUsername()).orElse(null);
 	}
 }

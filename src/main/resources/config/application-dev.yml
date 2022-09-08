@@ -23,6 +23,14 @@ spring:
         prepStmtCacheSize: 250
         prepStmtCacheSqlLimit: 2048
         useServerPrepStmts: true
+        maximumPoolSize: 1
+        maximum-pool-size: 1
+        minimum-idle: 1
+        minimumIdle: 1
+    tomcat:
+      max-active: 1
+      initial-size: 1
+      max-idle: 1
   jpa:
     properties:
       hibernate:
