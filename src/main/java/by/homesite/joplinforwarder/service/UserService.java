@@ -1,16 +1,12 @@
 package by.homesite.joplinforwarder.service;
 
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import by.homesite.joplinforwarder.config.ApplicationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;

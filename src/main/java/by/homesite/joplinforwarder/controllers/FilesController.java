@@ -6,15 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import by.homesite.joplinforwarder.config.ApplicationProperties;
-import by.homesite.joplinforwarder.model.User;
-import by.homesite.joplinforwarder.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -31,10 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-	
+
+import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.model.FileInfo;
 import by.homesite.joplinforwarder.service.FilesStorageService;
+import by.homesite.joplinforwarder.service.UserService;
 
 @Controller
 @RequestMapping("/api/files")

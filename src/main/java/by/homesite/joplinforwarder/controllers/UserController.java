@@ -2,11 +2,9 @@ package by.homesite.joplinforwarder.controllers;
 
 import javax.validation.Valid;
 
-import by.homesite.joplinforwarder.controllers.mapper.UserSignupRequestMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +14,7 @@ import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.UserResponse;
 import by.homesite.joplinforwarder.controllers.mapper.UserMapper;
+import by.homesite.joplinforwarder.controllers.mapper.UserSignupRequestMapper;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.UserService;
 
