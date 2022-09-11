@@ -30,6 +30,7 @@ import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.model.FileInfo;
 import by.homesite.joplinforwarder.service.FilesStorageService;
+import by.homesite.joplinforwarder.service.TranslateService;
 import by.homesite.joplinforwarder.service.UserService;
 
 @Controller
@@ -45,6 +46,9 @@ public class FilesController
 	@Autowired
 	ApplicationProperties applicationProperties;
 
+	@Autowired
+	TranslateService translate;
+
 	@PostMapping("/upload")
 	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file)
 	{
@@ -55,12 +59,12 @@ public class FilesController
 			storageService.deleteAll();
 
 			storageService.save(file);
-			message = "Uploaded the file successfully: " + file.getOriginalFilename();
+			message = translate.get("files.save-successfully") + file.getOriginalFilename();
 			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
 		}
 		catch (Exception e)
 		{
-			message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+			message = translate.get("files.save-cant-upload") + file.getOriginalFilename() + "!";
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
 		}
 	}
@@ -84,7 +88,7 @@ public class FilesController
 				List<Path> fileInfos = storageService.loadAllByUsername(userId);
 				if (!fileInfos.isEmpty()) {
 					Path avatar = fileInfos.get(0);
-					ByteArrayResource resource = null;
+					ByteArrayResource resource;
 					resource = new ByteArrayResource(Files.readAllBytes(avatar));
 					return ResponseEntity
 							.ok()

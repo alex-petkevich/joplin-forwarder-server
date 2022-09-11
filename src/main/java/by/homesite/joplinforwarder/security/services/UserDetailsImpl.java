@@ -1,5 +1,6 @@
 package by.homesite.joplinforwarder.security.services;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class UserDetailsImpl implements UserDetails
 {
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private final Long id;
 	private final String username;
@@ -24,7 +26,7 @@ public class UserDetailsImpl implements UserDetails
 	private final String password;
 	private final Boolean active;
 	private final String lang;
-	private Collection<? extends GrantedAuthority> authorities;
+	private final Collection<? extends GrantedAuthority> authorities;
 
 	public UserDetailsImpl(Long id, String username, String email, String password, Boolean active, String lang,
 			Collection<? extends GrantedAuthority> authorities)
@@ -86,7 +88,7 @@ public class UserDetailsImpl implements UserDetails
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean isAccountNonLocked()
 	{
@@ -105,7 +107,8 @@ public class UserDetailsImpl implements UserDetails
 		return active;
 	}
 
-	public String getLang() {
+	public String getLang()
+	{
 		return lang;
 	}
 }

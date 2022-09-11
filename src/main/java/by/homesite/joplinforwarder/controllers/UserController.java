@@ -2,6 +2,7 @@ package by.homesite.joplinforwarder.controllers;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import by.homesite.joplinforwarder.controllers.dto.response.UserResponse;
 import by.homesite.joplinforwarder.controllers.mapper.UserMapper;
 import by.homesite.joplinforwarder.controllers.mapper.UserSignupRequestMapper;
 import by.homesite.joplinforwarder.model.User;
+import by.homesite.joplinforwarder.service.TranslateService;
 import by.homesite.joplinforwarder.service.UserService;
 
 @RestController
@@ -25,6 +27,9 @@ public class UserController {
 	private final UserService userService;
 	private final UserMapper userMapper;
 	private final UserSignupRequestMapper userSignupRequestMapper;
+
+	@Autowired
+	TranslateService translate;
 
 	public UserController(UserService userService, UserMapper userMapper, UserSignupRequestMapper userSignupRequestMapper)
 	{
@@ -42,19 +47,19 @@ public class UserController {
 		{
 			return ResponseEntity
 					.badRequest()
-					.body(new MessageResponse("Error: Username change is not supported"));
+					.body(new MessageResponse(translate.get("user.error-not-supported")));
 		}
 		if (!userRequest.getEmail().equals(currentUserData.getEmail()) && userService.isEmailExists(userRequest.getEmail()))
 		{
 			return ResponseEntity
 					.badRequest()
-					.body(new MessageResponse("Error: Email is already in use!"));
+					.body(new MessageResponse(translate.get("user.error-email-already-use")));
 		}
 
 		userRequest.setUsername(currentUserData.getUsername());
 		userService.saveUser(currentUserData, userRequest, null);
 
-		return ResponseEntity.ok(new MessageResponse("User saved successfully"));
+		return ResponseEntity.ok(new MessageResponse(translate.get("user.saved-successfully")));
 	}
 
 	@GetMapping("/")
@@ -79,7 +84,7 @@ public class UserController {
 
 		userService.saveUser(currentUserData, signupRequest, null);
 
-		return ResponseEntity.ok(new MessageResponse("Lang updated successfully"));
+		return ResponseEntity.ok(new MessageResponse(translate.get("user.lang-updated-successfully")));
 	}
 
 }

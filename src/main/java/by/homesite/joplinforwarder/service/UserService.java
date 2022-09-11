@@ -146,7 +146,7 @@ public class UserService
 			userRepository.save(user);
 
 			mailService.sendPasswordResetMail(user);
-			return new MessageResponse("successful");
+			return new MessageResponse("ok");
 		}
 
 		return new MessageResponse("");
@@ -156,7 +156,7 @@ public class UserService
 	{
 		User user = userRepository.findByActivationKey(key).orElse(null);
 		if (user != null && user.getActive() == 1) {
-			return new MessageResponse("successful");
+			return new MessageResponse("ok");
 		}
 		return new MessageResponse("");
 	}
@@ -170,7 +170,7 @@ public class UserService
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
 			
-			return new MessageResponse("successful");
+			return new MessageResponse("ok");
 		}
 		
 		return new MessageResponse("");
