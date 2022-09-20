@@ -83,4 +83,7 @@ public class User
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Settings> settingsList;
+
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Rule> rules;
 }
