@@ -11,6 +11,10 @@ spring:
     active: dev
     group:
       dev: 'dev, api-docs'
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
   jmx:
     enabled: false
   data:
