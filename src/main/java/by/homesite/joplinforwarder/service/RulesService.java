@@ -30,4 +30,17 @@ public class RulesService
 		return rulesRepository.getByUserId(userId);
 	}
 
+	public Rule getRule(Integer id, Long userId)
+	{
+		return rulesRepository.getByIdAndUserId(id, userId);
+	}
+
+	public void deleteRule(Integer id, Long userId)
+	{
+		Rule rule = rulesRepository.getByIdAndUserId(id, userId);
+		if (rule != null) {
+			rulesRepository.delete(rule);
+		}
+	}
+
 }

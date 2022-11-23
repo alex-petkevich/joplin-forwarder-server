@@ -17,13 +17,13 @@ public class RuleResponse {
 
     private String name;
 
-    private Integer type;
+    private String type;
 
-    private Integer comparison_method;
+    private String comparison_method;
 
     private Integer save_in;
 
-    private Integer final_action;
+    private String final_action;
 
     private Integer processed;
 

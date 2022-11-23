@@ -12,7 +12,9 @@ import by.homesite.joplinforwarder.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,9 +37,6 @@ public class RulesController
 	RulesService rulesService;
 
 	@Autowired
-	ApplicationProperties applicationProperties;
-
-	@Autowired
 	RuleMapper ruleMapper;
 
 	@Autowired
@@ -53,13 +52,33 @@ public class RulesController
 		return ResponseEntity.ok(result);
 	}
 
+	@GetMapping("/{id}")
+	@ResponseBody
+	public ResponseEntity<RuleResponse> getRule(@Valid @PathVariable String id)
+	{
+		User user = userService.getCurrentUser();
+		RuleResponse result = ruleMapper.toEntity(rulesService.getRule(Integer.parseInt(id), user.getId()));
+
+		return ResponseEntity.ok(result);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseBody
+	public ResponseEntity<?> deleteRule(@Valid @PathVariable String id)
+	{
+		User user = userService.getCurrentUser();
+		rulesService.deleteRule(Integer.parseInt(id), user.getId());
+
+		return ResponseEntity.ok().build();
+	}
+
 	@PostMapping("/")
-	public ResponseEntity<?> save(@Valid @RequestBody RuleRequest userRule)
+	public ResponseEntity<RuleResponse> save(@Valid @RequestBody RuleRequest userRule)
 	{
 		User user = userService.getCurrentUser();
 		Rule result = rulesService.saveRule(user, ruleRequestMapper.toDto(userRule));
 
-		return ResponseEntity.ok(result);
+		return ResponseEntity.ok(ruleMapper.toEntity(result));
 	}
 
 }
