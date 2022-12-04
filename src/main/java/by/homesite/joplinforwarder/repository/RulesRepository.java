@@ -12,4 +12,6 @@ public interface RulesRepository extends JpaRepository<Rule, Long>
     List<Rule> getByUserId(Long userId);
 
     Rule getByUserIdAndName(Long userId, String name);
+
+    Rule getByIdAndUserId(Integer id, Long userId);
 }
