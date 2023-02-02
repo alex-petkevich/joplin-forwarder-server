@@ -33,19 +33,19 @@ public class UserService
 	final JwtUtils jwtUtils;
 	final UserRepository userRepository;
 	final PasswordEncoder encoder;
-	private MailService mailService;
+	private SendMailService sendMailService;
 
 	@Autowired
 	private ApplicationProperties applicationProperties;
 
 	public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository,
-			PasswordEncoder encoder, MailService mailService)
+			PasswordEncoder encoder, SendMailService sendMailService)
 	{
 		this.authenticationManager = authenticationManager;
 		this.jwtUtils = jwtUtils;
 		this.userRepository = userRepository;
 		this.encoder = encoder;
-		this.mailService = mailService;
+		this.sendMailService = sendMailService;
 	}
 
 	public JwtResponse authenticate(String username, String password)
@@ -97,7 +97,7 @@ public class UserService
 		}
 		userRepository.save(user);
 		
-		mailService.sendActivationEmail(user);
+		sendMailService.sendActivationEmail(user);
 	}
 
 	public void saveUser(User currentUserData, SignupRequest signUpRequest, Set<Role> roles)
@@ -145,8 +145,8 @@ public class UserService
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
 
-			mailService.sendPasswordResetMail(user);
-			return new MessageResponse("ok");
+			sendMailService.sendPasswordResetMail(user);
+			return new MessageResponse("successful");
 		}
 
 		return new MessageResponse("");
@@ -156,7 +156,7 @@ public class UserService
 	{
 		User user = userRepository.findByActivationKey(key).orElse(null);
 		if (user != null && user.getActive() == 1) {
-			return new MessageResponse("ok");
+			return new MessageResponse("successful");
 		}
 		return new MessageResponse("");
 	}
@@ -170,7 +170,7 @@ public class UserService
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
 			
-			return new MessageResponse("ok");
+			return new MessageResponse("successful");
 		}
 		
 		return new MessageResponse("");
