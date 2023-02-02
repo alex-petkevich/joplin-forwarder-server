@@ -1,6 +1,7 @@
 package by.homesite.joplinforwarder.service;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
+import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.Rule;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.RulesRepository;
@@ -43,4 +44,7 @@ public class RulesService
 		}
 	}
 
+	public boolean meetsUserRule(Mail mail, User user) {
+		return true;
+	}
 }

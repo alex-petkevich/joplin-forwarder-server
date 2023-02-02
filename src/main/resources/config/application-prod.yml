@@ -48,6 +48,8 @@ server:
 application:
   general:
     baseUrl: 'http://api-forwarder.homesite.by/'
+    crawler-schedulers: true
+    rate-schedulers: false
   mail:
     from: support-joplin@homesite.by
     baseUrl: 'http://forwarder.homesite.by/'

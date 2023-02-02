@@ -38,6 +38,8 @@ public class ApplicationProperties {
         private String jwtSecret = "jwtSecret";
         private String jwtExpirationMs = "jwtExpirationMs";
         private String default_lang = "default_lang";
+        private String crawlerSchedulers = "crawler-schedulers";
+        private String rateSchedulers = "rate-schedulers";
     }
 
     @Getter
