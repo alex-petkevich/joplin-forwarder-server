@@ -1,39 +1,43 @@
 package by.homesite.joplinforwarder.service;
 
-import by.homesite.joplinforwarder.JoplinforwarderApplication;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
+import by.homesite.joplinforwarder.service.mapper.MailMessageMapper;
+import by.homesite.joplinforwarder.util.ImapUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.mail.Address;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
-import java.net.ConnectException;
+
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
+
+import com.sun.mail.imap.IMAPMessage;
 
 @Service
 public class MailService {
     private final SettingsService settingsService;
     private final RulesService rulesService;
     private final MailRepository mailRepository;
+    
+    private final MailMessageMapper mailMessageMapper;
 
     private static final Logger log = LoggerFactory.getLogger(MailService.class);
 
-    public MailService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository) {
+    public MailService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository,
+            MailMessageMapper mailMessageMapper) {
         this.settingsService = settingsService;
         this.rulesService = rulesService;
         this.mailRepository = mailRepository;
+        this.mailMessageMapper = mailMessageMapper;
     }
 
     public void getMail() {
@@ -44,7 +48,7 @@ public class MailService {
         });
     }
 
-    private void fetchAndSaveMails(User user, String messageId) {
+    private void fetchAndSaveMails(User user, String lastSavedMessageId) {
         String mailServer = settingsService.getSettingValue(user.getSettingsList(), "mailserver");
         String mailPort = settingsService.getSettingValue(user.getSettingsList(), "mailport");
         String mailUser = settingsService.getSettingValue(user.getSettingsList(), "username");
@@ -54,64 +58,71 @@ public class MailService {
             return;
         }
 
-        Properties properties = new Properties();
-        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        properties.put("mail.pop3.socketFactory.fallback", "false");
-        properties.put("mail.pop3.ssl.protocols", "TLSv1.2");
+        Properties properties = ImapUtil.configureImapConnection();
 
-        try {
-            final javax.mail.Session session = javax.mail.Session.getInstance(properties);
-            Store store = session.getStore("pop3s");
+        final javax.mail.Session session = javax.mail.Session.getInstance(properties);
+        try
+        {
+            Store store = session.getStore("imaps");
             store.connect(mailServer, Integer.parseInt(mailPort), mailUser, mailPassword);
 
-            Folder[] personalFolders = store.getDefaultFolder().list( "*" );
-            for (Folder object : personalFolders) {
-                if ((object.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0){
-                    object.open(Folder.READ_ONLY);
-                    Message[] messes = object.getMessages();
+            Folder object = store.getFolder("INBOX");
 
-                    for (Message mess : messes) {
-                        Mail mail = new Mail();
-                            mail.setSubject(mess.getSubject());
-                        mail.setReceived(mess.getReceivedDate().toInstant().atOffset(ZoneOffset.UTC));
-                        String recipients = Arrays.stream(mess.getAllRecipients())
-                                .map(Address::getType)
-                                .collect(Collectors.joining(","));
-                        String sender = Arrays.stream(mess.getFrom())
-                                .map(Address::getType)
-                                .collect(Collectors.joining(","));
-                        mail.setSender(sender);
-                        mail.setRecipient(recipients);
-                        mail.setMessage_id(String.valueOf(mess.getMessageNumber()));
-                        mail.setText(mess.getDescription());
-                        mail.setUser(user);
-                        if (rulesService.meetsUserRule(mail, user)) {
-                            mailRepository.save(mail);
-                        } else {
-                            log.info(String.format("Message %s does not meet any rules for user %s", mail.getSubject(), user.getUsername()));
-                        }
-                    }
-                    object.close(false);
+            object.open(Folder.READ_WRITE);
+            Message[] messes = object.getMessages();
+
+            for (Message mess : messes)
+            {
+                String id = ((IMAPMessage) mess).getMessageID();
+                if (!StringUtils.hasText(id) || getMailByMessageId(user, id) != null) {
+                    continue;
+                }
+                if (id.equals(lastSavedMessageId)) {
+                    break;
+                }
+                
+                Mail mail = mailMessageMapper.toDto((IMAPMessage) mess);
+
+                mail.setUser(user);
+                mail.setRule(rulesService.getUserRule(mail, user));
+
+                if (mail.getRule() != null)
+                {
+                    mailRepository.save(mail);
+                }
+                else
+                {
+                    log.info(String.format("Message %s does not meet any rules for user %s", mail.getSubject(), user.getUsername()));
                 }
             }
+
+            object.close(false);
+
+            settingsService.setSettingValue(user, "lasttime_mail_processed", String.valueOf(OffsetDateTime.now().toEpochSecond()));
 
             if (store.isConnected()) {
                 store.close();
             }
+
         } catch (MessagingException e) {
             log.error(String.format("Can not get access to the user %s mailbox: %s", user.getUsername(), e.getMessage()));
         }
-        settingsService.setSettingValue(user, "lasttime_mail_processed", String.valueOf(OffsetDateTime.now().toEpochSecond()));
+    }
+
+    private Object getMailByMessageId(User user, String id)
+    {
+        return mailRepository.getByUserAndMessageId(user, id);
     }
 
     private String getLastSavedMessageId(Long id) {
         Mail recentMail = mailRepository.findTop1ByUserIdOrderByReceivedDesc(id);
         if (recentMail != null) {
-            return recentMail.getMessage_id();
+            return recentMail.getMessageId();
         }
         return "";
     }
 
     public void deleteOldItems(int purgeMailsPeriod) {
     }
+
 }

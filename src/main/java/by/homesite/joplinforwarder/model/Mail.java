@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -39,7 +40,8 @@ public class Mail
 
 	private Integer processed;
 
-	private String message_id;
+	@Column(name = "message_id", nullable = false)
+	private String messageId;
 
 	private OffsetDateTime received;
 

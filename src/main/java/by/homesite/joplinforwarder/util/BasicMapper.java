@@ -1,4 +1,4 @@
-package by.homesite.joplinforwarder.controllers.mapper;
+package by.homesite.joplinforwarder.util;
 
 import java.util.List;
 

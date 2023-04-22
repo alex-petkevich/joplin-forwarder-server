@@ -56,7 +56,7 @@ public class SettingsService
 			String lastTimeProcessed = getSettingValue(it.getSettingsList(), "lasttime_mail_processed");
 			String period = getSettingValue(it.getSettingsList(), "period");
 			return "".equals(lastTimeProcessed)
-					|| OffsetDateTime.now().toEpochSecond() > Long.parseLong(lastTimeProcessed) + Long.parseLong(period) * 24 * 3600;
+					|| OffsetDateTime.now().toEpochSecond() > Long.parseLong(lastTimeProcessed) + Long.parseLong(period) * 60;
 		}).collect(Collectors.toList());
 	}
 

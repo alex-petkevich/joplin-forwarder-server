@@ -2,6 +2,8 @@ package by.homesite.joplinforwarder.controllers.mapper;
 
 import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.model.User;
+import by.homesite.joplinforwarder.util.BasicMapper;
+
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

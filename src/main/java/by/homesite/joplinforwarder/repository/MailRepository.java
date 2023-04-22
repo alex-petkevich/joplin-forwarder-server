@@ -13,6 +13,7 @@ import java.util.List;
 public interface MailRepository extends JpaRepository<Mail, Long>
 {
     List<Mail> getByUserId(Long userId);
+    Mail getByUserAndMessageId(User user, String messageId);
 
     Mail findTop1ByUserIdOrderByReceivedDesc(Long userId);
 }

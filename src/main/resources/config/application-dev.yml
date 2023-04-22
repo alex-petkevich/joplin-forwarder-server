@@ -14,7 +14,7 @@ spring:
     serialization:
       indent-output: true
   datasource:
-    url: 'jdbc:sqlite:c:/work/java/joplin-forwarder/joplinforwarder.db'
+    url: 'jdbc:sqlite:/Users/aliaksandrpiatkevich/work/joplinforwarder.db'
     hikari:
       poolName: Hikari
       auto-commit: false

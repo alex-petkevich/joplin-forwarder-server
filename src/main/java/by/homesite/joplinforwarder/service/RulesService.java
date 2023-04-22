@@ -47,4 +47,9 @@ public class RulesService
 	public boolean meetsUserRule(Mail mail, User user) {
 		return true;
 	}
+
+	public Rule getUserRule(Mail mail, User user)
+	{
+		return getRule(1, 37L);
+	}
 }

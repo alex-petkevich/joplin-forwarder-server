@@ -22,7 +22,7 @@ public class CrawlerScheduled {
     }
 
     @Scheduled(fixedRate = Constants.PARSE_MAILS_PERIOD)
-    public void getNewMail() throws ExecutionException, InterruptedException
+    public void getNewMail()
     {
         if (Constants.DISABLED.equals(applicationProperties.getGeneral().getCrawlerSchedulers()))
             return;
