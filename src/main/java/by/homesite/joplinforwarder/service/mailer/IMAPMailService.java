@@ -1,0 +1,206 @@
+package by.homesite.joplinforwarder.service.mailer;
+
+import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
+
+import by.homesite.joplinforwarder.config.ApplicationProperties;
+import by.homesite.joplinforwarder.model.Mail;
+import by.homesite.joplinforwarder.model.User;
+import by.homesite.joplinforwarder.repository.MailRepository;
+import by.homesite.joplinforwarder.service.RulesService;
+import by.homesite.joplinforwarder.service.SettingsService;
+import by.homesite.joplinforwarder.service.mailer.mapper.IMAPMailMessageMapper;
+import by.homesite.joplinforwarder.util.MailUtil;
+import io.jsonwebtoken.lang.Collections;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Store;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Properties;
+
+import com.sun.mail.imap.IMAPMessage;
+import com.sun.mail.util.MailSSLSocketFactory;
+
+@Service
+public class IMAPMailService implements MailService
+{
+    private final SettingsService settingsService;
+    private final RulesService rulesService;
+    private final MailRepository mailRepository;
+    
+    private final IMAPMailMessageMapper IMAPMailMessageMapper;
+    
+    private final ApplicationProperties applicationProperties;
+
+    private static final Logger log = LoggerFactory.getLogger(IMAPMailService.class);
+
+    public IMAPMailService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository,
+            IMAPMailMessageMapper IMAPMailMessageMapper, ApplicationProperties applicationProperties) {
+        this.settingsService = settingsService;
+        this.rulesService = rulesService;
+        this.mailRepository = mailRepository;
+        this.IMAPMailMessageMapper = IMAPMailMessageMapper;
+        this.applicationProperties = applicationProperties;
+    }
+
+    @Override
+    public void getMail() {
+        List<User> users = this.settingsService.getMailSettingsByUsers();
+        users.forEach(user -> {
+            String messageId = getLastSavedMessageId(user.getId());
+            fetchAndSaveMails(user, messageId);
+        });
+    }
+
+    @Override
+    public void deleteOldItems(int purgeMailsPeriod) {
+    }
+
+    private void fetchAndSaveMails(User user, String lastSavedMessageId) {
+        String mailServer = settingsService.getSettingValue(user.getSettingsList(), "mailserver");
+        String mailPort = settingsService.getSettingValue(user.getSettingsList(), "mailport");
+        String mailUser = settingsService.getSettingValue(user.getSettingsList(), "username");
+        String mailPassword = settingsService.getSettingValue(user.getSettingsList(), "password");
+
+        if (!StringUtils.hasText(mailServer) || !StringUtils.hasText(mailPort)) {
+            return;
+        }
+
+        Properties properties = configureImapConnection();
+
+        final javax.mail.Session session = javax.mail.Session.getInstance(properties);
+        try
+        {
+            Store store = session.getStore("imaps");
+            store.connect(mailServer, Integer.parseInt(mailPort), mailUser, mailPassword);
+
+            Folder object = store.getFolder("INBOX");
+
+            object.open(Folder.READ_WRITE);
+            Message[] messes = object.getMessages();
+
+            for (Message mess : messes)
+            {
+                String id = ((IMAPMessage) mess).getMessageID();
+                if (!StringUtils.hasText(id) || getMailByMessageId(user, id) != null) {
+                    continue;
+                }
+                if (id.equals(lastSavedMessageId)) {
+                    break;
+                }
+                
+                Mail mail = IMAPMailMessageMapper.toDto((IMAPMessage) mess);
+
+                mail.setUser(user);
+                mail.setRule(rulesService.getUserRule(mail, user));
+
+                if (mail.getRule() != null)
+                {
+                    mail = mailRepository.save(mail);
+                    saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId());
+                }
+                else
+                {
+                    log.info(String.format("Message %s does not meet any rules for user %s", mail.getSubject(), user.getUsername()));
+                }
+            }
+
+            object.close(false);
+
+            settingsService.setSettingValue(user, "lasttime_mail_processed", String.valueOf(OffsetDateTime.now().toEpochSecond()));
+
+            if (store.isConnected()) {
+                store.close();
+            }
+
+        } catch (MessagingException e) {
+            log.error(String.format("Can not get access to the user %s mailbox: %s", user.getUsername(), e.getMessage()));
+        }
+    }
+
+    private void saveAttachements(User user, List<String> filesFromMessage, Integer id)
+    {
+        if (Collections.isEmpty(filesFromMessage)) {
+            return;
+        }
+        
+        String uploadDir = getUploadDir(user.getUsername(), String.valueOf(id));
+        try
+        {
+            Files.createDirectories(Paths.get(uploadDir));
+        }
+        catch (IOException e)
+        {
+            log.info(String.format("Creation user %s directory error: %s", user.getUsername(), e.getMessage()));
+            return;
+        }
+        filesFromMessage.forEach(it -> {
+            String realFileName = MailUtil.getRealFileName(it);
+            try
+            {
+                Files.move(Path.of(it), Path.of(uploadDir + realFileName));
+            }
+            catch (IOException e)
+            {
+                log.info(String.format("Moving file %s to %s error: %s", it, uploadDir + realFileName , e.getMessage()));
+            }
+        });
+        
+    }
+    
+    private Object getMailByMessageId(User user, String id)
+    {
+        return mailRepository.getByUserAndMessageId(user, id);
+    }
+
+    private String getLastSavedMessageId(Long id) {
+        Mail recentMail = mailRepository.findTop1ByUserIdOrderByReceivedDesc(id);
+        if (recentMail != null) {
+            return recentMail.getMessageId();
+        }
+        return "";
+    }
+
+    private String getUploadDir(String userId, String messageId) {
+        return applicationProperties.getUpload().getLocalPath() + applicationProperties.getUpload().getUploadDir() + File.separator + userId + File.separator + applicationProperties.getUpload().getAttachDir() + File.separator + messageId + File.separator;
+    }
+
+
+    private Properties configureImapConnection()
+    {
+
+        Properties properties = new Properties();
+        MailSSLSocketFactory sf;
+        try
+        {
+            sf = new MailSSLSocketFactory();
+        }
+        catch (GeneralSecurityException e)
+        {
+            log.error("Can not get ssl certificate");
+            return properties;
+        }
+        sf.setTrustAllHosts(true);
+
+        properties.put("mail.imaps.ssl.socketFactory", sf);
+        properties.put("mail.imaps.ssl.trust", "*");
+        properties.put("mail.imaps.starttls.enable", "true");
+        properties.put("mail.imaps.timeout", CONNECT_TIMEOUT);
+        properties.put("mail.store.protocol", "imaps");
+        return properties;
+    }
+}

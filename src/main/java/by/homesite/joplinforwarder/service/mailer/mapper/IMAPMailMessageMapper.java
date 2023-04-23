@@ -1,4 +1,4 @@
-package by.homesite.joplinforwarder.service.mapper;
+package by.homesite.joplinforwarder.service.mailer.mapper;
 
 import java.io.IOException;
 import java.time.ZoneOffset;
@@ -17,12 +17,12 @@ import com.sun.mail.imap.IMAPMessage;
 
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.util.BasicMapper;
-import by.homesite.joplinforwarder.util.ImapUtil;
+import by.homesite.joplinforwarder.util.MailUtil;
 
 @Component
-public class MailMessageMapper implements BasicMapper<Mail, IMAPMessage>
+public class IMAPMailMessageMapper implements BasicMapper<Mail, IMAPMessage>
 {
-	private static final Logger log = LoggerFactory.getLogger(MailMessageMapper.class);
+	private static final Logger log = LoggerFactory.getLogger(IMAPMailMessageMapper.class);
 
 	@Override
 	public IMAPMessage toEntity(Mail dto)
@@ -49,14 +49,14 @@ public class MailMessageMapper implements BasicMapper<Mail, IMAPMessage>
 			mail.setSender(sender);
 			mail.setRecipient(recipients);
 			mail.setMessageId(mess.getMessageID());
-			mail.setText(ImapUtil.getTextFromMessage(mess));
+			mail.setText(MailUtil.getTextFromMessage(mess));
 		}
 		catch (MessagingException | IOException e)
 		{
 			log.error(String.format("Can not parse message content: %s", e.getMessage()));
 		}
 
-		return null;
+		return mail;
 	}
 
 	@Override

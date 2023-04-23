@@ -68,5 +68,6 @@ public class ApplicationProperties {
     public static class Upload {
         private String localPath = "local-path";
         private String uploadDir = "upload-dir";
+        private String attachDir = "attach-dir";
     }
 }
