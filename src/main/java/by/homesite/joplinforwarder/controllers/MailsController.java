@@ -23,10 +23,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,4 +89,15 @@ public class MailsController
 		return ResponseEntity.ok(mailMapper.toEntity(result));
 	}
 
+	@GetMapping("/{id}/download")
+	public byte[] downloadAttachment(@PathVariable String id, @RequestParam String f) throws IOException
+	{
+		User user = userService.getCurrentUser();
+		Mail mail = mailService.getMail(Integer.parseInt(id), user.getId());
+		if (mail == null) {
+			return "".getBytes();
+		}
+		
+		return mailService.getAttachment(mail.getAttachments(), f);
+	}
 }

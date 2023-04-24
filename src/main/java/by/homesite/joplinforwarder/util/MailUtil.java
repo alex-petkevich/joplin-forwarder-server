@@ -20,6 +20,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
 
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -95,7 +96,7 @@ public class MailUtil
 
 	private static String parseBodyPart(BodyPart bodyPart) throws MessagingException, IOException {
 		if (bodyPart.isMimeType("text/html")) {
-			return bodyPart.getContent().toString();
+			return Jsoup.parse(bodyPart.getContent().toString()).text();
 		} 
 		if (bodyPart.getContent() instanceof MimeMultipart){
 			return getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());

@@ -116,6 +116,7 @@ public class IMAPMailerService implements MailerService
                 {
                     mail = mailRepository.save(mail);
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
+                    mailRepository.save(mail);
                 }
                 else
                 {
