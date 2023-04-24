@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MailService
@@ -49,10 +52,13 @@ public class MailService
 
 	public byte[] getAttachment(String attachments, String f) throws IOException
 	{
-		String fullPath = 
-		Arrays.stream(attachments.split("\\|")).filter(it -> f.equals(Path.of(it).getFileName().toString())).findFirst().toString();
-		if (StringUtils.hasText(fullPath)) {
-			return Files.readAllBytes(Path.of(fullPath));
+		Optional<String> fullPath = 
+		Arrays.stream(attachments.split("\\|")).filter(it -> f.equals(Path.of(it).getFileName().toString())).findFirst();
+		if (fullPath.isPresent()) {
+			RandomAccessFile file = new RandomAccessFile(fullPath.get(), "r");
+			byte[] result = new byte[(int)file.length()];
+			file.readFully(result);
+			return result;
 		}
 		return "".getBytes();
 	}
