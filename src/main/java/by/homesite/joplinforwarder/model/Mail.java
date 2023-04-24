@@ -45,7 +45,7 @@ public class Mail
 
 	private String attachments;
 
-	@Column(name = "message_id", nullable = false)
+	@Column(name = "message_id")
 	private String messageId;
 
 	private OffsetDateTime received;

@@ -37,7 +37,7 @@ import com.sun.mail.imap.IMAPMessage;
 import com.sun.mail.util.MailSSLSocketFactory;
 
 @Service
-public class IMAPMailService implements MailService
+public class IMAPMailerService implements MailerService
 {
     private final SettingsService settingsService;
     private final RulesService rulesService;
@@ -47,10 +47,10 @@ public class IMAPMailService implements MailService
     
     private final ApplicationProperties applicationProperties;
 
-    private static final Logger log = LoggerFactory.getLogger(IMAPMailService.class);
+    private static final Logger log = LoggerFactory.getLogger(IMAPMailerService.class);
 
-    public IMAPMailService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository,
-            IMAPMailMessageMapper IMAPMailMessageMapper, ApplicationProperties applicationProperties) {
+    public IMAPMailerService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository,
+                             IMAPMailMessageMapper IMAPMailMessageMapper, ApplicationProperties applicationProperties) {
         this.settingsService = settingsService;
         this.rulesService = rulesService;
         this.mailRepository = mailRepository;

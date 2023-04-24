@@ -1,6 +1,6 @@
 package by.homesite.joplinforwarder.service.mailer;
 
-public interface MailService
+public interface MailerService
 {
 	void getMail();
 
