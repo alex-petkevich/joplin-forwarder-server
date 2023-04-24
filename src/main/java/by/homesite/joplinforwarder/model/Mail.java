@@ -40,6 +40,11 @@ public class Mail
 
 	private Integer processed;
 
+	@Column(name = "added_at")
+	private Integer addedAt;
+
+	private String attachments;
+
 	@Column(name = "message_id", nullable = false)
 	private String messageId;
 

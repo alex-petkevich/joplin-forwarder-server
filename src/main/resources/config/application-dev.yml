@@ -14,7 +14,7 @@ spring:
     serialization:
       indent-output: true
   datasource:
-    url: 'jdbc:sqlite:/Users/aliaksandrpiatkevich/work/joplinforwarder.db'
+    url: 'jdbc:sqlite:C:/work/java/joplin-forwarder/joplinforwarder.db'
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -59,7 +59,7 @@ application:
     from: support-joplin@homesite.by
     baseUrl: 'http://localhost:4200/'
   upload:
-    local-path: '/Users/aliaksandrpiatkevich/work/java/joplin-forwarder/'
+    local-path: 'C:/work/java/joplin-forwarder/'
     upload-dir: uploads
     attach-dir: attachments
   cors:

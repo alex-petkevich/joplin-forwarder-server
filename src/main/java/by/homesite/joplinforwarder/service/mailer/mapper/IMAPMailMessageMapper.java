@@ -48,7 +48,6 @@ public class IMAPMailMessageMapper implements BasicMapper<Mail, IMAPMessage>
 					.collect(Collectors.joining(","));
 			mail.setSender(sender);
 			mail.setRecipient(recipients);
-			mail.setMessageId(mess.getMessageID());
 			mail.setText(MailUtil.getTextFromMessage(mess));
 		}
 		catch (MessagingException | IOException e)

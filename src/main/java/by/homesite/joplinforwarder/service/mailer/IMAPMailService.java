@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -95,7 +96,9 @@ public class IMAPMailService implements MailService
 
             for (Message mess : messes)
             {
-                String id = ((IMAPMessage) mess).getMessageID();
+                String id =  StringUtils.hasText(((IMAPMessage) mess).getMessageID())
+                        ? ((IMAPMessage) mess).getMessageID()
+                        : String.valueOf(mess.getReceivedDate().getTime());
                 if (!StringUtils.hasText(id) || getMailByMessageId(user, id) != null) {
                     continue;
                 }
@@ -107,11 +110,12 @@ public class IMAPMailService implements MailService
 
                 mail.setUser(user);
                 mail.setRule(rulesService.getUserRule(mail, user));
+                mail.setMessageId(id);
 
                 if (mail.getRule() != null)
                 {
                     mail = mailRepository.save(mail);
-                    saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId());
+                    mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
                 }
                 else
                 {
@@ -132,10 +136,11 @@ public class IMAPMailService implements MailService
         }
     }
 
-    private void saveAttachements(User user, List<String> filesFromMessage, Integer id)
+    private String saveAttachements(User user, List<String> filesFromMessage, Integer id)
     {
+        List<String> attachments = new ArrayList<>();
         if (Collections.isEmpty(filesFromMessage)) {
-            return;
+            return "";
         }
         
         String uploadDir = getUploadDir(user.getUsername(), String.valueOf(id));
@@ -146,20 +151,22 @@ public class IMAPMailService implements MailService
         catch (IOException e)
         {
             log.info(String.format("Creation user %s directory error: %s", user.getUsername(), e.getMessage()));
-            return;
+            return "";
         }
         filesFromMessage.forEach(it -> {
             String realFileName = MailUtil.getRealFileName(it);
             try
             {
                 Files.move(Path.of(it), Path.of(uploadDir + realFileName));
+                attachments.add(uploadDir + realFileName);
             }
             catch (IOException e)
             {
                 log.info(String.format("Moving file %s to %s error: %s", it, uploadDir + realFileName , e.getMessage()));
             }
         });
-        
+
+        return String.join("|", attachments);
     }
     
     private Object getMailByMessageId(User user, String id)
