@@ -9,14 +9,18 @@ import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.RulesService;
 import by.homesite.joplinforwarder.service.SettingsService;
 import by.homesite.joplinforwarder.service.mailer.mapper.IMAPMailMessageMapper;
+import by.homesite.joplinforwarder.service.storage.StorageService;
 import by.homesite.joplinforwarder.util.MailUtil;
+import com.sun.mail.imap.IMAPFolder;
 import io.jsonwebtoken.lang.Collections;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -42,20 +46,24 @@ public class IMAPMailerService implements MailerService
     private final SettingsService settingsService;
     private final RulesService rulesService;
     private final MailRepository mailRepository;
-    
-    private final IMAPMailMessageMapper IMAPMailMessageMapper;
-    
+    private final IMAPMailMessageMapper imapMailMessageMapper;
     private final ApplicationProperties applicationProperties;
+    private final StorageService storageService;
 
     private static final Logger log = LoggerFactory.getLogger(IMAPMailerService.class);
 
-    public IMAPMailerService(SettingsService settingsService, RulesService rulesService, MailRepository mailRepository,
-                             IMAPMailMessageMapper IMAPMailMessageMapper, ApplicationProperties applicationProperties) {
+    public IMAPMailerService(SettingsService settingsService,
+                             RulesService rulesService,
+                             MailRepository mailRepository,
+                             IMAPMailMessageMapper imapMailMessageMapper,
+                             ApplicationProperties applicationProperties,
+                             @Qualifier("storageServiceStrategy") StorageService storageService) {
         this.settingsService = settingsService;
         this.rulesService = rulesService;
         this.mailRepository = mailRepository;
-        this.IMAPMailMessageMapper = IMAPMailMessageMapper;
+        this.imapMailMessageMapper = imapMailMessageMapper;
         this.applicationProperties = applicationProperties;
+        this.storageService = storageService;
     }
 
     @Override
@@ -106,7 +114,7 @@ public class IMAPMailerService implements MailerService
                     break;
                 }
                 
-                Mail mail = IMAPMailMessageMapper.toDto((IMAPMessage) mess);
+                Mail mail = imapMailMessageMapper.toDto((IMAPMessage) mess);
 
                 mail.setUser(user);
                 mail.setRule(rulesService.getUserRule(mail, user));
@@ -117,6 +125,10 @@ public class IMAPMailerService implements MailerService
                     mail = mailRepository.save(mail);
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
                     mailRepository.save(mail);
+
+                    storageService.storeRecord(user, mail);
+
+                    performFinalSteps(user, mail, (IMAPMessage) mess, store);
                 }
                 else
                 {
@@ -134,6 +146,37 @@ public class IMAPMailerService implements MailerService
 
         } catch (MessagingException e) {
             log.error(String.format("Can not get access to the user %s mailbox: %s", user.getUsername(), e.getMessage()));
+        }
+    }
+
+    private void performFinalSteps(User user, Mail mail, IMAPMessage mess, Store store) {
+        switch (mail.getRule().getFinal_action()) {
+            case "MARK_READ" -> {
+                try {
+                    mess.setFlag(Flags.Flag.SEEN, true);
+                } catch (MessagingException e) {
+                    log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                }
+            }
+            case "DELETE" -> {
+                try {
+                    mess.setFlag(Flags.Flag.DELETED, true);
+                } catch (MessagingException e) {
+                    log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                }
+            }
+            case "MOVE_TO_FOLDER" -> {
+                if (StringUtils.hasText(mail.getRule().getFinal_action_target())) {
+                    try {
+                        IMAPFolder object = (IMAPFolder) store.getFolder(mail.getRule().getFinal_action_target());
+                        Message[] msgs = new Message[1];
+                        msgs[0] = mess;
+                        object.moveMessages(msgs, object);
+                    } catch (MessagingException e) {
+                        log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                    }
+                }
+            }
         }
     }
 
