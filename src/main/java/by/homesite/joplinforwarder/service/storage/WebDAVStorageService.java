@@ -3,9 +3,15 @@ package by.homesite.joplinforwarder.service.storage;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.SettingsService;
-import by.homesite.joplinforwarder.service.dto.JoplinNode;
-import by.homesite.joplinforwarder.service.storage.mapper.JoplinNodeMailMapper;
+import by.homesite.joplinforwarder.service.dto.JoplinItem;
+import by.homesite.joplinforwarder.service.storage.mapper.JoplinItemMailMapper;
 import by.homesite.joplinforwarder.util.JoplinParserUtil;
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
+import com.github.sardine.impl.SardineException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.params.HttpClientParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,6 +25,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -31,12 +38,12 @@ import java.util.List;
 public class WebDAVStorageService implements StorageService {
 
     private final SettingsService settingsService;
-    private final JoplinNodeMailMapper mailMapper;
+    private final JoplinItemMailMapper mailMapper;
     private final JoplinParserUtil joplinParserUtil;
 
     private static final Logger log = LoggerFactory.getLogger(WebDAVStorageService.class);
 
-    public WebDAVStorageService(SettingsService settingsService, JoplinNodeMailMapper mailMapper, JoplinParserUtil joplinParserUtil) {
+    public WebDAVStorageService(SettingsService settingsService, JoplinItemMailMapper mailMapper, JoplinParserUtil joplinParserUtil) {
         this.settingsService = settingsService;
         this.mailMapper = mailMapper;
         this.joplinParserUtil = joplinParserUtil;
@@ -54,11 +61,16 @@ public class WebDAVStorageService implements StorageService {
             return;
         }
 
-        storeNode(joplinserverdavurl, joplinserverdavusername, joplinserverdavpassword, mail);
+        if (mail.getRule() != null && StringUtils.hasText(mail.getRule().getSave_in_parent_id())) {
+
+        }
+
+        //storeNode(joplinserverdavurl, joplinserverdavusername, joplinserverdavpassword, mail);
+        getDBItemsList(joplinserverdavurl, joplinserverdavusername, joplinserverdavpassword);
     }
 
     private void storeNode(String joplinserverdavurl, String joplinserverdavusername, String joplinserverdavpassword, Mail mail) {
-        JoplinNode jNode = mailMapper.toDto(mail);
+        JoplinItem jNode = mailMapper.toDto(mail);
 
         if (!StringUtils.hasText(jNode.getId())) {
             return;
@@ -92,29 +104,30 @@ public class WebDAVStorageService implements StorageService {
         }
     }
 
-    private List<JoplinNode> getDBItemsList(String joplinserverdavurl, String joplinserverdavusername, String joplinserverdavpassword) {
+    private List<JoplinItem> getDBItemsList(String joplinserverdavurl, String joplinserverdavusername, String joplinserverdavpassword) {
 
-        List<JoplinNode> result = new ArrayList<>();
-        HttpURLConnection connection = connectToWebDavServer(joplinserverdavurl, joplinserverdavusername, joplinserverdavpassword);
+        List<JoplinItem> result = new ArrayList<>();
 
-        try {
-            int responseCode = connection.getResponseCode();
 
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+        Sardine sardine = SardineFactory.begin(joplinserverdavusername, joplinserverdavpassword);
+        try
+        {
+            URI url = URI.create(joplinserverdavurl);
+            final List<DavResource> resources = sardine.list(url.toString());
 
-                List<String> itemsList = getItems(connection);
-                itemsList.forEach(item -> {
-                    String itemContent = readItemContent(joplinserverdavurl + item);
-                    result.add(joplinParserUtil.textToNode(itemContent));
-                });
+            resources.forEach(item -> {
+                String itemFileName = item.getName();
+                JoplinItem jItem = new JoplinItem();
+                jItem.setName(itemFileName);
+                result.add(jItem);
+                //result.add(joplinParserUtil.textToNode(itemContent));
+            });
 
-                return result;
-
-            }
-        } catch (Exception e) {
+            return result;
+        }
+        catch (IOException e)
+        {
             log.error("WebDAV connection error");
-        } finally {
-            connection.disconnect();
         }
 
         return Collections.emptyList();
@@ -160,7 +173,7 @@ public class WebDAVStorageService implements StorageService {
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
             connection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
 
-            //            connection.setRequestMethod("PROPFIND");
+            connection.setRequestMethod("PROPFIND");
             connection.setRequestProperty("Depth", "1"); // Set the depth of the request
             connection.setRequestProperty("Content-Type", "text/xml"); // Set the content type
         } catch (Exception e) {

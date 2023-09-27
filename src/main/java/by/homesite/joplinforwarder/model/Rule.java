@@ -37,6 +37,8 @@ public class Rule
 
 	private Integer save_in;
 
+	private String save_in_parent_id;
+
 	private String final_action;
 
 	private Integer processed;

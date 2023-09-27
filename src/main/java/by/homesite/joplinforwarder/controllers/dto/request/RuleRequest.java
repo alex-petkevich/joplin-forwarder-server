@@ -24,6 +24,8 @@ public class RuleRequest
 
 	private Integer save_in;
 
+	private Integer save_in_parent_id;
+
 	private Integer processed;
 
 	private String final_action;
