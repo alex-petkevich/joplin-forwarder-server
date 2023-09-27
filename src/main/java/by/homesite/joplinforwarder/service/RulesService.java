@@ -1,6 +1,5 @@
 package by.homesite.joplinforwarder.service;
 
-import antlr.StringUtils;
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.Rule;
@@ -10,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class RulesService
@@ -54,25 +55,15 @@ public class RulesService
 		List<Rule> rules = getUserRules(user.getId());
 
 		for (Rule rule : rules) {
-			boolean meetsRule = false;
-
-			switch (rule.getType()) {
-				case "FROM":
-					meetsRule = compareField(rule, mail.getSender());
-					break;
-				case "TO":
-					meetsRule = compareField(rule, mail.getRecipient());
-					break;
-				case "SUBJECT":
-					meetsRule = compareField(rule, mail.getSubject());
-					break;
-				case "BODY":
-					meetsRule = compareField(rule, mail.getText());
-					break;
-				case "ATTACH":
-					meetsRule = compareField(rule, mail.getAttachments());
-					break;
-			}
+			boolean meetsRule = switch (rule.getType())
+					{
+						case "FROM" -> compareField(rule, mail.getSender());
+						case "TO" -> compareField(rule, mail.getRecipient());
+						case "SUBJECT" -> compareField(rule, mail.getSubject());
+						case "BODY" -> compareField(rule, mail.getText());
+						case "ATTACH" -> compareField(rule, mail.getAttachments());
+						default -> false;
+					};
 
 			if (meetsRule) {
 				return rule;
@@ -86,27 +77,22 @@ public class RulesService
 		boolean meets = false;
 		subject = subject.trim();
 
-		switch (rule.getComparison_method()) {
-			case "EQUALS":
-				meets = rule.getComparison_text().equalsIgnoreCase(subject);
-				break;
-			case "NOT_EQUALS":
-				meets = !rule.getComparison_text().equalsIgnoreCase(subject);
-				break;
-			case "CONTAINS":
-				meets = subject.matches(prepareSearchStatement(rule));
-				break;
-			case "NOT_CONTAINS":
-				meets = !subject.matches(prepareSearchStatement(rule));
-				break;
+		switch (rule.getComparison_method())
+		{
+			case "EQUALS" -> meets = rule.getComparison_text().equalsIgnoreCase(subject);
+			case "NOT_EQUALS" -> meets = !rule.getComparison_text().equalsIgnoreCase(subject);
+			case "CONTAINS" -> meets = prepareSearchStatement(rule, subject);
+			case "NOT_CONTAINS" -> meets = !prepareSearchStatement(rule, subject);
 		}
 
 		return meets;
 	}
 
-	private static String prepareSearchStatement(Rule rule) {
-		String prepared = rule.getComparison_text().replace("*", ".+");
+	private static boolean prepareSearchStatement(Rule rule, String subject) {
+		String prepared = rule.getComparison_text().replace("*", "(.+)");
 		prepared = prepared.replace("%", ".{1}");
-		return prepared;
+		Pattern p = Pattern.compile(prepared);
+		Matcher m = p.matcher(subject);
+		return m.find();
 	}
 }
