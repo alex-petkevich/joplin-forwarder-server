@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,6 +89,19 @@ public class MailsController
 		Mail result = mailService.save(user, mailRequestMapper.toDto(userRule));
 
 		return ResponseEntity.ok(mailMapper.toEntity(result));
+	}
+
+	@PostMapping("/resync/")
+	public ResponseEntity<MailResponse> resync(@Valid @RequestBody MailRequest[] mails)
+	{
+		User user = userService.getCurrentUser();
+		List<Mail> mailList = new ArrayList<>();
+		for(MailRequest mail: mails) {
+			mailList.add(mailService.getMail(Math.toIntExact(mail.getId()), user.getId()));
+		}
+		mailService.storeMails(user, mailList);
+
+		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("/{id}/download")

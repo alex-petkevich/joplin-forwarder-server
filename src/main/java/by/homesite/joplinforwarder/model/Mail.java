@@ -36,7 +36,7 @@ public class Mail
 
 	private String recipient;
 
-	private String converted;
+	private Integer converted;
 
 	private Integer processed;
 
@@ -47,6 +47,9 @@ public class Mail
 
 	@Column(name = "message_id")
 	private String messageId;
+
+	@Column(name = "processed_id")
+	private String processedId;
 
 	private OffsetDateTime received;
 

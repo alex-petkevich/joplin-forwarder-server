@@ -4,7 +4,9 @@ import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
+import by.homesite.joplinforwarder.service.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -20,11 +22,16 @@ import java.util.Optional;
 @Service
 public class MailService
 {
-	@Autowired
-	private MailRepository mailRepository;
+	private final MailRepository mailRepository;
 
-	@Autowired
-	private ApplicationProperties applicationProperties;
+	private final ApplicationProperties applicationProperties;
+	private final StorageService storageService;
+
+	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties,@Qualifier("storageServiceStrategy") StorageService storageService) {
+		this.mailRepository = mailRepository;
+		this.applicationProperties = applicationProperties;
+		this.storageService = storageService;
+	}
 
 	public Mail save(User user, Mail mail)
 	{
@@ -61,5 +68,24 @@ public class MailService
 			return result;
 		}
 		return "".getBytes();
+	}
+
+	public void storeMails(User user, List<Mail> mails) {
+
+		if (mails.isEmpty()) {
+			return;
+		}
+
+		for (Mail mail: mails) {
+			if (mail.getRule() != null)
+			{
+				String processedId = storageService.storeRecord(user, mail);
+
+				mail.setConverted(1);
+				mail.setProcessedId(processedId);
+
+				mailRepository.save(mail);
+			}
+		}
 	}
 }

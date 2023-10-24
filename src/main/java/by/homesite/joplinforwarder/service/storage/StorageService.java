@@ -4,5 +4,5 @@ import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 
 public interface StorageService {
-    void storeRecord(User user, Mail mail);
+    String storeRecord(User user, Mail mail);
 }

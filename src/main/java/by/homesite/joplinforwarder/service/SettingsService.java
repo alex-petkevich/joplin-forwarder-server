@@ -57,7 +57,7 @@ public class SettingsService
 			String period = getSettingValue(it.getSettingsList(), "period");
 			return "".equals(lastTimeProcessed)
 					|| OffsetDateTime.now().toEpochSecond() > Long.parseLong(lastTimeProcessed) + Long.parseLong(period) * 60;
-		}).collect(Collectors.toList());
+		}).toList();
 	}
 
 	public String getSettingValue(List<Settings> settingsList, String name) {

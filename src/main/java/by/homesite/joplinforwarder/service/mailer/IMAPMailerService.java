@@ -4,6 +4,7 @@ import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
+import by.homesite.joplinforwarder.model.Rule;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.RulesService;

@@ -27,11 +27,11 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public void storeRecord(User user, Mail mail) {
+    public String storeRecord(User user, Mail mail) {
         String joplinserver = settingsService.getSettingValue(user.getSettingsList(), "joplinserver");
 
         if (mail.getRule() == null || !StringUtils.hasText(joplinserver)) {
-            return;
+            return joplinserver;
         }
 
         switch (joplinserver) {
@@ -42,5 +42,6 @@ public class StorageServiceImpl implements StorageService {
             }
         }
 
+        return joplinserver;
     }
 }

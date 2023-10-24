@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 public class LocalStorageService implements StorageService {
 
     @Override
-    public void storeRecord(User user, Mail mail) {
+    public String storeRecord(User user, Mail mail) {
 
+        return null;
     }
 }
