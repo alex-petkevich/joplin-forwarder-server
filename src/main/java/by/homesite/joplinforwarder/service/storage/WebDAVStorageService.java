@@ -11,6 +11,7 @@ import by.homesite.joplinforwarder.service.storage.client.dto.DavFileInputStream
 import by.homesite.joplinforwarder.service.storage.client.dto.DavList;
 import by.homesite.joplinforwarder.service.storage.mapper.JoplinItemMailMapper;
 import by.homesite.joplinforwarder.util.JoplinParserUtil;
+import lombok.Data;
 import org.apache.jackrabbit.webdav.DavException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Data
 @Component
 public class WebDAVStorageService implements StorageService {
 
     public static final String FILE_EXT = ".md";
+    public static final String WEB_DAV_PROCESSING_ERROR = "WebDAV processing error";
 
     private final SettingsService settingsService;
     private final JoplinItemMailMapper mailMapper;
@@ -47,20 +50,42 @@ public class WebDAVStorageService implements StorageService {
     @Override
     public String storeRecord(User user, Mail mail) {
 
-        String parentId = "";
-        if (mail.getRule() != null && StringUtils.hasText(mail.getRule().getSave_in_parent_id())) {
-            List<JoplinItem> items = getDBItemsList(user);
-            Optional<JoplinItem> parentNode = items.stream().filter(it ->
-                    it.getType_() == JoplinParserUtil.TYPE_NODE && mail.getRule().getSave_in_parent_id().equals(it.getId())
-            ).findFirst();
-            if (parentNode.isEmpty()) {
-                parentId = createJoplinNode(user, mail.getRule().getSave_in_parent_id());
-            } else {
-                parentId = parentNode.get().getId();
-            }
+        if (mail.getRule() == null) {
+            return "";
         }
 
-        return storeNode(user, mail, parentId);
+        return  mail.getRule().getSave_in() == 1
+                ? storeNewItem(user, mail, mail.getRule().getSave_in_parent_id())
+                : storeExistingItem(user, mail, mail.getRule().getSave_in_parent_id());
+    }
+
+    private String storeExistingItem(User user, Mail mail, String saveInParentId) {
+        JoplinItem parentItem = null;
+
+        List<JoplinItem> items = getDBItemsList(user);
+        Optional<JoplinItem> parentNode = items.stream().filter(it ->
+                it.getType_() == JoplinParserUtil.TYPE_ITEM && saveInParentId.equals(it.getId())
+        ).findFirst();
+        if (parentNode.isEmpty()) {
+            return "";
+        } else {
+            parentItem = parentNode.get();
+        }
+
+        String content = parentItem.getContent() + "\n\n #" + mail.getSubject() + " " + mail.getReceived();
+        parentItem.setContent(content);
+
+        String fileName = parentItem.getId() + FILE_EXT;
+        String fileContent = joplinParserUtil.itemToText(parentItem);
+
+        try
+        {
+            getDavClient(user).put(fileContent.getBytes(), fileName);
+        } catch (DavException | IOException e) {
+            log.error(WEB_DAV_PROCESSING_ERROR);
+        }
+
+        return parentItem.getId();
     }
 
     private String createJoplinNode(User user, String saveInParentId) {
@@ -72,7 +97,7 @@ public class WebDAVStorageService implements StorageService {
         joplinNode.setUpdatedTime(LocalDateTime.now());
         joplinNode.setUserCreatedTime(LocalDateTime.now());
         joplinNode.setUserUpdatedTime(LocalDateTime.now());
-        joplinNode.setType_(2);
+        joplinNode.setType_(JoplinParserUtil.TYPE_NODE);
 
         String fileName = joplinNode.getId() + FILE_EXT;
         String fileContent = joplinParserUtil.nodeToText(joplinNode);
@@ -81,13 +106,26 @@ public class WebDAVStorageService implements StorageService {
         {
             getDavClient(user).put(fileContent.getBytes(), fileName);
         } catch (DavException | IOException e) {
-            log.error("WebDAV processing error");
+            log.error(WEB_DAV_PROCESSING_ERROR);
         }
 
         return joplinNode.getId();
     }
 
-    private String storeNode(User user, Mail mail, String parentId) {
+    private String storeNewItem(User user, Mail mail, String parentId) {
+
+        if (mail.getRule() != null && StringUtils.hasText(parentId)) {
+            List<JoplinItem> items = getDBItemsList(user);
+            Optional<JoplinItem> parentNode = items.stream().filter(it ->
+                    it.getType_() == JoplinParserUtil.TYPE_NODE && mail.getRule().getSave_in_parent_id().equals(it.getId())
+            ).findFirst();
+            if (parentNode.isEmpty()) {
+                parentId = createJoplinNode(user, parentId);
+            } else {
+                parentId = parentNode.get().getId();
+            }
+        }
+
         JoplinItem jNode = mailMapper.toDto(mail);
 
         if (!StringUtils.hasText(jNode.getId())) {
@@ -103,7 +141,7 @@ public class WebDAVStorageService implements StorageService {
         {
             getDavClient(user).put(fileContent.getBytes(), fileName);
         } catch (DavException | IOException e) {
-            log.error("WebDAV processing error");
+            log.error(WEB_DAV_PROCESSING_ERROR);
         }
         return jNode.getId();
     }
@@ -127,7 +165,7 @@ public class WebDAVStorageService implements StorageService {
 
             return result;
         } catch (DavException | IOException e) {
-            log.error("WebDAV processing error");
+            log.error(WEB_DAV_PROCESSING_ERROR);
         }
 
 
