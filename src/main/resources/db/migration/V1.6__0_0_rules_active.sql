@@ -1,0 +1,1 @@
+ALTER TABLE rules ADD `active` INTEGER DEFAULT 1;

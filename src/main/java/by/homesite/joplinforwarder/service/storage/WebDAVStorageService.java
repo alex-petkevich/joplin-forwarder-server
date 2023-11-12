@@ -62,14 +62,20 @@ public class WebDAVStorageService implements StorageService {
     private String storeExistingItem(User user, Mail mail, String saveInParentId) {
         JoplinItem parentItem = null;
 
-        List<JoplinItem> items = getDBItemsList(user);
-        Optional<JoplinItem> parentNode = items.stream().filter(it ->
-                it.getType_() == JoplinParserUtil.TYPE_ITEM && saveInParentId.equals(it.getId())
-        ).findFirst();
-        if (parentNode.isEmpty()) {
+        if (!StringUtils.hasText(saveInParentId)) {
             return "";
         } else {
-            parentItem = parentNode.get();
+            String rootParentNodeId = getParentNodeId(user, mail, "");
+            
+            List<JoplinItem> items = getDBItemsList(user);
+            Optional<JoplinItem> item = items.stream().filter(it ->
+                    it.getType_() == JoplinParserUtil.TYPE_ITEM && saveInParentId.trim().equalsIgnoreCase(it.getId().trim())
+            ).findFirst();
+            parentItem = item.orElseGet(() -> mailMapper.toDto(mail));
+            if (!rootParentNodeId.isEmpty()) {
+                parentItem.setParentId(rootParentNodeId);
+            }
+            
         }
 
         String content = parentItem.getContent() + "\n\n #" + mail.getSubject() + " " + mail.getReceived();
@@ -115,15 +121,7 @@ public class WebDAVStorageService implements StorageService {
     private String storeNewItem(User user, Mail mail, String parentId) {
 
         if (mail.getRule() != null && StringUtils.hasText(parentId)) {
-            List<JoplinItem> items = getDBItemsList(user);
-            Optional<JoplinItem> parentNode = items.stream().filter(it ->
-                    it.getType_() == JoplinParserUtil.TYPE_NODE && mail.getRule().getSave_in_parent_id().equals(it.getId())
-            ).findFirst();
-            if (parentNode.isEmpty()) {
-                parentId = createJoplinNode(user, parentId);
-            } else {
-                parentId = parentNode.get().getId();
-            }
+            parentId = getParentNodeId(user, mail, mail.getRule().getSave_in_parent_id());
         }
 
         JoplinItem jNode = mailMapper.toDto(mail);
@@ -144,6 +142,38 @@ public class WebDAVStorageService implements StorageService {
             log.error(WEB_DAV_PROCESSING_ERROR);
         }
         return jNode.getId();
+    }
+
+    private String getParentNodeId(User user, Mail mail, String parentNodeId)
+    {
+        List<JoplinItem> items = getDBItemsList(user);
+
+        String settingsParentId = "";
+        String settingsNode = settingsService.getSettingValue(user.getSettingsList(), "joplinserverparentnode");
+        if (StringUtils.hasText(settingsNode)) {
+            Optional<JoplinItem> settingsParentNode = items.stream().filter(it ->
+                    it.getType_() == JoplinParserUtil.TYPE_NODE && settingsNode.trim().equalsIgnoreCase(it.getContent().trim())
+            ).findFirst();
+            
+            if (settingsParentNode.isEmpty()) {
+                settingsParentId = createJoplinNode(user, settingsParentId);
+            } else {
+                settingsParentId = settingsParentNode.get().getId();
+            }
+        }
+        
+        if (!StringUtils.hasText(parentNodeId)) {
+            return settingsParentId;
+        }
+        
+        Optional<JoplinItem> parentNode = items.stream().filter(it ->
+                it.getType_() == JoplinParserUtil.TYPE_NODE && parentNodeId.trim().equalsIgnoreCase(it.getContent().trim())
+        ).findFirst();
+        if (parentNode.isEmpty()) {
+            return createJoplinNode(user, settingsParentId);
+        } else {
+            return parentNode.get().getId();
+        }
     }
 
     private List<JoplinItem> getDBItemsList(User user) {

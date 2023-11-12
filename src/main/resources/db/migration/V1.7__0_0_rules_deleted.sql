@@ -1,0 +1,1 @@
+ALTER TABLE rules ADD `deleted` INTEGER DEFAULT 0;
