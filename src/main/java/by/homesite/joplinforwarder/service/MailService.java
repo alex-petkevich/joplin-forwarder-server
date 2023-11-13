@@ -5,11 +5,14 @@ import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.storage.StorageService;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -27,6 +30,9 @@ public class MailService
 	private final ApplicationProperties applicationProperties;
 	private final StorageService storageService;
 
+	@Autowired
+	private EntityManager entityManager;
+
 	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties,@Qualifier("storageServiceStrategy") StorageService storageService) {
 		this.mailRepository = mailRepository;
 		this.applicationProperties = applicationProperties;
@@ -41,6 +47,12 @@ public class MailService
 
 	public List<Mail> getUserMails(Long userId)
 	{
+		/*Session session = entityManager.unwrap(Session.class);
+		Filter filter = session.enableFilter("deletedProductFilter");
+		filter.setParameter("isDeleted", true);
+		List<Mail> results = mailRepository.getByUserIdOrderByReceivedDesc(userId);
+		session.disableFilter("deletedProductFilter");*/
+
 		return mailRepository.getByUserIdOrderByReceivedDesc(userId);
 	}
 

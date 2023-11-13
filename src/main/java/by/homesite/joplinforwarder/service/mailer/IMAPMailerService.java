@@ -179,6 +179,13 @@ public class IMAPMailerService implements MailerService
                 }
             }
         }
+
+        mail.setConverted(1);
+        mailRepository.save(mail);
+
+        mail.getRule().setLast_processed_at(OffsetDateTime.now());
+        mail.getRule().setProcessed(mail.getRule().getProcessed() + 1);
+        rulesService.saveRule(user, mail.getRule());
     }
 
     private String saveAttachements(User user, List<String> filesFromMessage, Integer id)

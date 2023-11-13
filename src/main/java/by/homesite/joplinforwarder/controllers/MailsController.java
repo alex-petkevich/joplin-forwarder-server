@@ -57,7 +57,7 @@ public class MailsController
 	public ResponseEntity<List<MailResponse>> getUserMails()
 	{
 		User user = userService.getCurrentUser();
-		List<MailResponse> result = mailService.getUserMails(user.getId()).stream().map(mailMapper::toEntity).collect(Collectors.toList());
+		List<MailResponse> result = mailService.getUserMails(user.getId()).stream().map(mailMapper::toEntity).toList();
 
 		return ResponseEntity.ok(result);
 	}
