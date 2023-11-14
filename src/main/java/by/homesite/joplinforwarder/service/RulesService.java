@@ -29,8 +29,12 @@ public class RulesService
 
 	public List<Rule> getUserRules(Long userId)
 	{
-
 		return rulesRepository.getByUserId(userId);
+	}
+
+	public List<Rule> getUserActiveRules(Long userId)
+	{
+		return rulesRepository.getByUserIdAndActiveOrderByPriority(userId, true);
 	}
 
 	public Rule getRule(Integer id, Long userId)
@@ -52,7 +56,7 @@ public class RulesService
 
 	public Rule getUserRule(Mail mail, User user)
 	{
-		List<Rule> rules = getUserRules(user.getId());
+		List<Rule> rules = getUserActiveRules(user.getId());
 
 		for (Rule rule : rules) {
 			boolean meetsRule = switch (rule.getType())

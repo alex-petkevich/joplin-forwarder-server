@@ -28,6 +28,12 @@ public class RuleRequest
 
 	private Integer processed;
 
+	private Boolean active;
+
+	private Boolean stop_process_rules;
+
+	private Integer priority;
+
 	private String final_action;
 
 	private String comparison_text;

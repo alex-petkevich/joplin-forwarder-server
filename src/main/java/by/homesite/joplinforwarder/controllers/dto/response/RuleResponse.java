@@ -23,6 +23,12 @@ public class RuleResponse {
 
     private Integer save_in;
 
+    private Boolean active;
+
+    private Boolean stop_process_rules;
+
+    private Integer priority;
+
     private String save_in_parent_id;
 
     private String final_action;
@@ -33,13 +39,13 @@ public class RuleResponse {
 
     private String final_action_target;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime created_at;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime last_modified_at;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime last_processed_at;
 
 }

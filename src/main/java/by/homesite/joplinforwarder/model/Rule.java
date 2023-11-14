@@ -46,6 +46,8 @@ public class Rule
 
 	private Integer save_in;
 
+	private Integer priority;
+
 	private String save_in_parent_id;
 
 	private String final_action;
@@ -65,6 +67,8 @@ public class Rule
 	private Boolean active = Boolean.TRUE;
 
 	private Boolean deleted = Boolean.FALSE;
+
+	private Boolean stop_process_rules = Boolean.FALSE;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")

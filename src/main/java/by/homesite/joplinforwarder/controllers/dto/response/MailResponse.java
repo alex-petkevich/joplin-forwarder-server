@@ -47,6 +47,6 @@ public class MailResponse {
     @Column(name = "message_id")
     private String messageId;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime received;
 }
