@@ -108,7 +108,7 @@ public class IMAPMailerService implements MailerService
                 String id =  StringUtils.hasText(((IMAPMessage) mess).getMessageID())
                         ? ((IMAPMessage) mess).getMessageID()
                         : String.valueOf(mess.getReceivedDate().getTime());
-                if (!StringUtils.hasText(id) || getMailByMessageId(user, id) != null) {
+                if (!StringUtils.hasText(id) || mess.getFlags().contains(Flags.Flag.SEEN) || getMailByMessageId(user, id) != null) {
                     continue;
                 }
                 if (id.equals(lastSavedMessageId)) {

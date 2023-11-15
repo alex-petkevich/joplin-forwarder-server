@@ -95,7 +95,7 @@ public class RulesService
 	private static boolean prepareSearchStatement(Rule rule, String subject) {
 		String prepared = rule.getComparison_text().replace("*", "(.+)");
 		prepared = prepared.replace("%", ".{1}");
-		Pattern p = Pattern.compile(prepared);
+		Pattern p = Pattern.compile(prepared, Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(subject);
 		return m.find();
 	}
