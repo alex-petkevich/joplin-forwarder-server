@@ -1,5 +1,6 @@
 package by.homesite.joplinforwarder.util;
 
+import by.homesite.joplinforwarder.service.dto.JoplinAttachment;
 import by.homesite.joplinforwarder.service.dto.JoplinItem;
 import by.homesite.joplinforwarder.service.dto.JoplinNode;
 import org.springframework.stereotype.Component;
@@ -88,6 +89,14 @@ public class JoplinParserUtil {
         context.setVariable("node", inputText);
 
         return templateEngine.process("joplin/item", context);
+    }
+
+    public String attachToText(JoplinAttachment inputText) {
+
+        Context context = new Context();
+        context.setVariable("node", inputText);
+
+        return templateEngine.process("joplin/attach", context);
     }
 
     public String getIdByName(List<JoplinItem> dbItemsList, String name) {

@@ -3,6 +3,7 @@ package by.homesite.joplinforwarder.service.storage;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.SettingsService;
+import by.homesite.joplinforwarder.service.dto.JoplinAttachment;
 import by.homesite.joplinforwarder.service.dto.JoplinItem;
 import by.homesite.joplinforwarder.service.dto.JoplinNode;
 import by.homesite.joplinforwarder.service.storage.client.DavClient;
@@ -20,8 +21,14 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
+import java.io.File;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -78,7 +85,7 @@ public class WebDAVStorageService implements StorageService {
             
         }
 
-        String content = parentItem.getContent() + "\n\n #" + mail.getSubject() + " " + mail.getReceived();
+        String content = parentItem.getContent() + "\n\n #" + mail.getSubject() + " " + mail.getReceived() + addAttachmentsToContent(user, mail.getAttachments());
         parentItem.setContent(content);
 
         String fileName = parentItem.getId() + FILE_EXT;
@@ -97,7 +104,7 @@ public class WebDAVStorageService implements StorageService {
     private String createJoplinNode(User user, String saveInParentId) {
         JoplinNode joplinNode = new JoplinNode();
 
-        joplinNode.setId(UUID.randomUUID().toString().replace("-", ""));
+        joplinNode.setId(generateFileName());
         joplinNode.setName(saveInParentId);
         joplinNode.setCreatedTime(LocalDateTime.now());
         joplinNode.setUpdatedTime(LocalDateTime.now());
@@ -118,6 +125,52 @@ public class WebDAVStorageService implements StorageService {
         return joplinNode.getId();
     }
 
+    private String storeJoplinAttachment(User user, String attachName, int num) {
+
+        Path realFile = Paths.get(attachName);
+        if (!Files.exists(realFile)) {
+            return "";
+        }
+
+        JoplinAttachment attach = new JoplinAttachment();
+
+        attach.setFileExtension(StringUtils.getFilenameExtension(attachName));
+        String attachFileName = num + "_" + generateFileName() + "." + attach.getFileExtension();
+        attach.setId(generateFileName());
+        attach.setName(attachFileName);
+        attach.setCreatedTime(LocalDateTime.now());
+        attach.setUpdatedTime(LocalDateTime.now());
+        attach.setUserCreatedTime(LocalDateTime.now());
+        attach.setUserUpdatedTime(LocalDateTime.now());
+        attach.setType_(JoplinParserUtil.TYPE_FILE);
+        attach.setFilename(attachName);
+        try {
+            attach.setSize(Files.size(realFile));
+            attach.setMime(Files.probeContentType(realFile));
+        }
+        catch (IOException e) {
+            log.error("Attachment not found");
+        }
+
+        String fileName = attach.getId() + FILE_EXT;
+        String fileContent = joplinParserUtil.attachToText(attach);
+
+        try
+        {
+            getDavClient(user).put(fileContent.getBytes(), fileName);
+            getDavClient(user).put(Files.readAllBytes(realFile), ".resource/" + attach.getId());
+        } catch (DavException | IOException e) {
+            log.error(WEB_DAV_PROCESSING_ERROR);
+        }
+        String image = attach.getMime() != null && attach.getMime().split("/")[0].equals("image") ? "!" : "";
+
+        return "%s[%s](:/%s)".formatted(image, realFile.getFileName(), attach.getId());
+    }
+
+    private String generateFileName() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
     private String storeNewItem(User user, Mail mail, String parentId) {
 
         if (mail.getRule() != null && StringUtils.hasText(parentId)) {
@@ -131,6 +184,7 @@ public class WebDAVStorageService implements StorageService {
         }
 
         jNode.setParentId(parentId);
+        jNode.setContent(jNode.getContent() + addAttachmentsToContent(user, mail.getAttachments()));
 
         String fileName = jNode.getId() + FILE_EXT;
         String fileContent = joplinParserUtil.itemToText(jNode);
@@ -142,6 +196,15 @@ public class WebDAVStorageService implements StorageService {
             log.error(WEB_DAV_PROCESSING_ERROR);
         }
         return jNode.getId();
+    }
+
+    private String addAttachmentsToContent(User user, String attachments) {
+        StringBuilder result = new StringBuilder("\n\n");
+        String[] atts = attachments.split("\\|");
+        for (int i=0; i < atts.length; i++) {
+            result.append(storeJoplinAttachment(user, atts[i], i)).append("\n");
+        }
+        return result.toString();
     }
 
     private String getParentNodeId(User user, Mail mail, String parentNodeId)

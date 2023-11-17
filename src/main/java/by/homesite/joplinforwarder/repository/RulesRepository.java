@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface RulesRepository extends JpaRepository<Rule, Long>
 {
-    List<Rule> getByUserId(Long userId);
+    List<Rule> getByUserIdOrderByPriority(Long userId);
 
     List<Rule> getByUserIdAndActiveOrderByPriority(Long userId, Boolean active);
 

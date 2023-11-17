@@ -127,7 +127,7 @@ public class IMAPMailerService implements MailerService
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
                     mailRepository.save(mail);
 
-                    storageService.storeRecord(user, mail);
+                    mail.setProcessedId(storageService.storeRecord(user, mail));
 
                     performFinalSteps(user, mail, (IMAPMessage) mess, store);
                 }

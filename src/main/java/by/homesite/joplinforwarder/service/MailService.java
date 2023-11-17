@@ -74,10 +74,11 @@ public class MailService
 		Optional<String> fullPath = 
 		Arrays.stream(attachments.split("\\|")).filter(it -> f.equals(Path.of(it).getFileName().toString())).findFirst();
 		if (fullPath.isPresent()) {
-			RandomAccessFile file = new RandomAccessFile(fullPath.get(), "r");
-			byte[] result = new byte[(int)file.length()];
-			file.readFully(result);
-			return result;
+			try (RandomAccessFile file = new RandomAccessFile(fullPath.get(), "r")) {
+				byte[] result = new byte[(int) file.length()];
+				file.readFully(result);
+				return result;
+			}
 		}
 		return "".getBytes();
 	}

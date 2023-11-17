@@ -29,7 +29,7 @@ public class RulesService
 
 	public List<Rule> getUserRules(Long userId)
 	{
-		return rulesRepository.getByUserId(userId);
+		return rulesRepository.getByUserIdOrderByPriority(userId);
 	}
 
 	public List<Rule> getUserActiveRules(Long userId)
