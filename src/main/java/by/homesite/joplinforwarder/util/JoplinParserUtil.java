@@ -10,9 +10,7 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class JoplinParserUtil {
@@ -97,10 +95,5 @@ public class JoplinParserUtil {
         context.setVariable("node", inputText);
 
         return templateEngine.process("joplin/attach", context);
-    }
-
-    public String getIdByName(List<JoplinItem> dbItemsList, String name) {
-        Optional<JoplinItem> node = dbItemsList.stream().filter(it -> it.getName().equalsIgnoreCase(name)).findFirst();
-        return node.isPresent() ? node.get().getId() : "";
     }
 }

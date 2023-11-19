@@ -9,6 +9,8 @@ import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -30,13 +32,13 @@ public class MailService
 	private final ApplicationProperties applicationProperties;
 	private final StorageService storageService;
 
-	@Autowired
-	private EntityManager entityManager;
+	private final EntityManager entityManager;
 
-	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties,@Qualifier("storageServiceStrategy") StorageService storageService) {
+	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties, @Qualifier("storageServiceStrategy") StorageService storageService, EntityManager entityManager) {
 		this.mailRepository = mailRepository;
 		this.applicationProperties = applicationProperties;
 		this.storageService = storageService;
+		this.entityManager = entityManager;
 	}
 
 	public Mail save(User user, Mail mail)
@@ -45,7 +47,7 @@ public class MailService
 		return mailRepository.save(mail);
 	}
 
-	public List<Mail> getUserMails(Long userId)
+	public Page<Mail> getUserMails(Long userId, Pageable pageable)
 	{
 		/*Session session = entityManager.unwrap(Session.class);
 		Filter filter = session.enableFilter("deletedProductFilter");
@@ -53,7 +55,7 @@ public class MailService
 		List<Mail> results = mailRepository.getByUserIdOrderByReceivedDesc(userId);
 		session.disableFilter("deletedProductFilter");*/
 
-		return mailRepository.getByUserIdOrderByReceivedDesc(userId);
+		return mailRepository.getByUserIdOrderByReceivedDesc(userId, pageable);
 	}
 
 	public Mail getMail(Integer id, Long userId)

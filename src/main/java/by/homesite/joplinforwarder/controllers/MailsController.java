@@ -15,6 +15,9 @@ import by.homesite.joplinforwarder.service.MailService;
 import by.homesite.joplinforwarder.service.UserService;
 import by.homesite.joplinforwarder.service.mailer.MailerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,6 +43,8 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class MailsController
 {
+	private static final int MAIL_RECORDS_LIMIT = 20;
+
 	@Autowired
 	UserService userService;
 
@@ -54,10 +59,12 @@ public class MailsController
 
 	@GetMapping("/")
 	@ResponseBody
-	public ResponseEntity<List<MailResponse>> getUserMails()
+	public ResponseEntity<Page<MailResponse>> getUserMails(@RequestParam(defaultValue = "0") int page)
 	{
 		User user = userService.getCurrentUser();
-		List<MailResponse> result = mailService.getUserMails(user.getId()).stream().map(mailMapper::toEntity).toList();
+		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT);
+
+		Page<MailResponse> result = mailService.getUserMails(user.getId(), paging).map(mailMapper::toEntity);
 
 		return ResponseEntity.ok(result);
 	}
