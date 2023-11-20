@@ -37,7 +37,7 @@ spring:
   devtools:
     add-properties: false
 server:
-  port: 9898
+  port: 8383
   shutdown: graceful # see https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-graceful-shutdown
   compression:
     enabled: true
