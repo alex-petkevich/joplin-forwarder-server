@@ -5,7 +5,7 @@ logging:
     by.homesite.gator: INFO
 spring:
   datasource:
-    url: 'jdbc:sqlite:/opt/joplin-forwarder/joplinforwarder.db'
+    url: 'jdbc:sqlite:/mnt/vol1/www/joplin/joplinforwarder.db'
     hikari:
       poolName: Hikari
       auto-commit: true
@@ -24,8 +24,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: '587'
-#    username: <login user to smtp server>
-#    password: <login password to smtp server>
+    username: joplinforwarder@gmail.com
+    password: !Qazxsw234
     properties:
       mail:
         smtp:
@@ -47,14 +47,13 @@ server:
 # App Properties
 application:
   general:
-    baseUrl: 'http://api-forwarder.homesite.by/'
+    baseUrl: 'http://api-fw.homesite.by/'
     crawler-schedulers: true
-    rate-schedulers: false
   mail:
     from: support-joplin@homesite.by
-    baseUrl: 'http://forwarder.homesite.by/'
+    baseUrl: 'http://fw.homesite.by/'
   upload:
-    local-path: '/opt/joplin-forwarder/'
+    local-path: '/mnt/vol1/www/joplin/data/'
     upload-dir: uploads
   cors:
-    allowed-origins: 'http://api-forwarder.homesite.by/'
+    allowed-origins: 'http://api-fw.homesite.by/'
