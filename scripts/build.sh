@@ -1,8 +1,8 @@
 #!/bin/bash
 
-chown jforwarder.jforwarder ./target/jforwarder-1.0-beta.jar
-chmod u+x ./target/jforwarder-1.0-beta.jar
-systemctl stop jforwarder
+chown joplinforwarder.joplinforwarder ./target/joplinforwarder-1.0.0-SNAPSHOT.jar
+chmod u+x ./target/joplinforwarder-1.0.0-SNAPSHOT.jar
+systemctl stop joplinforwarder
 sleep 3
-cp ./target/jforwarder-1.0-beta.jar /mnt/vol1/www/jforwarder/jforwarder.jar
-systemctl start jforwarder
+cp ./target/joplinforwarder-1.0.0-SNAPSHOT.jar /mnt/vol1/www/joplin/joplinforwarder.jar
+systemctl start joplinforwarder
