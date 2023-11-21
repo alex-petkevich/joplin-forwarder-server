@@ -1,8 +1,7 @@
 logging:
   level:
-    ROOT: INFO
-    tech.jhipster: INFO
-    by.homesite.gator: INFO
+    ROOT: DEBUG
+    by.homesite.joplinforwarder: DEBUG
 spring:
   datasource:
     url: 'jdbc:sqlite:/mnt/vol1/www/joplin/joplinforwarder.db'

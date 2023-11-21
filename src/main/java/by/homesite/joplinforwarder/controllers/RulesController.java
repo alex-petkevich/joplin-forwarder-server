@@ -1,6 +1,5 @@
 package by.homesite.joplinforwarder.controllers;
 
-import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.controllers.dto.request.RuleRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.RuleResponse;
 import by.homesite.joplinforwarder.controllers.mapper.RuleMapper;
