@@ -43,7 +43,7 @@ public class Mail
 	private Integer processed;
 
 	@Column(name = "added_at")
-	private Integer addedAt;
+	private OffsetDateTime addedAt;
 
 	private String attachments;
 

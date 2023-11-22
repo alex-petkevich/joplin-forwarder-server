@@ -10,6 +10,6 @@ CREATE TABLE mails
     `attachments` VARCHAR(255),
     `message_id`    VARCHAR(255),   -- message id from email headers (Message-ID if exists)
     `converted`  TINYINT,                  -- is email already stored in Joplin db
-    `received`  TINYINT,           -- mail date
-    `added_at`  TINYINT           -- saved date in the table
+    `received`  TIMESTAMP,           -- mail date
+    `added_at`  TIMESTAMP           -- saved date in the table
 );

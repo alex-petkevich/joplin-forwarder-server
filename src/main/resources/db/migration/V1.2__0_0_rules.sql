@@ -10,7 +10,7 @@ CREATE TABLE rules
     `final_action` VARCHAR(255), -- (mark as read, delete, move to another folder)
     `final_action_target` VARCHAR(255), -- (folder name if move on step above)
     `processed` SMALLINT,   -- times processed
-    `created_at`  INT,
-    `last_modified_at`  INT,
-    `last_processed_at` INT
+    `created_at`  TIMESTAMP,
+    `last_modified_at`  TIMESTAMP,
+    `last_processed_at` TIMESTAMP
 );

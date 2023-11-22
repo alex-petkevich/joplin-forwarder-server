@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS `users`
     `lang` VARCHAR(10),
     `activation_key` VARCHAR(255),
     `active`   INT default 0,
-    `created_at`  INT,
-    `last_modified_at`  INT
+    `created_at`  TIMESTAMP,
+    `last_modified_at`  TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_roles
