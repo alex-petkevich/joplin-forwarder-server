@@ -1,6 +1,6 @@
 CREATE TABLE rules
 (
-    `id`        INT PRIMARY KEY AUTOINCREMENT,
+    `id`        INT PRIMARY KEY AUTO_INCREMENT,
     `user_id`   INT NOT NULL,
     `name`      VARCHAR(255),
     `type`     VARCHAR(255) NOT NULL, -- rule type (from/subject/attach/date... )

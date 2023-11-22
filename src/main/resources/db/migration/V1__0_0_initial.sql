@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `roles`
 (
-	`id`   INT PRIMARY KEY AUTOINCREMENT,
+	`id`   INT PRIMARY KEY AUTO_INCREMENT,
 	`name` VARCHAR(255)
 );
 
@@ -10,7 +10,7 @@ insert into roles (id, name) values (3, 'ROLE_USER');
 
 CREATE TABLE IF NOT EXISTS `users`
 (
-	`id`       INT PRIMARY KEY AUTOINCREMENT,
+	`id`       INT PRIMARY KEY AUTO_INCREMENT,
 	`username` VARCHAR(255),
 	`firstname` VARCHAR(255),
 	`lastname` VARCHAR(255),

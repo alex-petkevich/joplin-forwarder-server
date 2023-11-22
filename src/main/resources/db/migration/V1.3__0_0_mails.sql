@@ -1,6 +1,6 @@
 CREATE TABLE mails
 (
-    `id`        INT PRIMARY KEY AUTOINCREMENT,
+    `id`        INT PRIMARY KEY AUTO_INCREMENT,
     `user_id`   INT NOT NULL,
     `rule_id`   INT NOT NULL,  -- from RULES table
     `text`      TEXT,
