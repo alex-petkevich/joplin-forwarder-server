@@ -1,1 +1,1 @@
-ALTER TABLE rules ADD `deleted` INTEGER DEFAULT 0;
+ALTER TABLE rules ADD `deleted` TINYINT DEFAULT 0;

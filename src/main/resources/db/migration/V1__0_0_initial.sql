@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `roles`
 (
-	`id`   INTEGER PRIMARY KEY AUTOINCREMENT,
-	`name` TEXT
+	`id`   INT PRIMARY KEY AUTOINCREMENT,
+	`name` VARCHAR(255)
 );
 
 insert into roles (id, name) values (1, 'ROLE_ADMIN');
@@ -10,24 +10,24 @@ insert into roles (id, name) values (3, 'ROLE_USER');
 
 CREATE TABLE IF NOT EXISTS `users`
 (
-	`id`       INTEGER PRIMARY KEY AUTOINCREMENT,
-	`username` TEXT,
-	`firstname` TEXT,
-	`lastname` TEXT,
-	`email`    TEXT,
-	`password` TEXT,
-	`image` TEXT,
-	`lang` TEXT,
-	`activation_key` TEXT,
-	'active'   INTEGER default 0,
-	'created_at'  INTEGER,
-	'last_modified_at'  INTEGER
+	`id`       INT PRIMARY KEY AUTOINCREMENT,
+	`username` VARCHAR(255),
+	`firstname` VARCHAR(255),
+	`lastname` VARCHAR(255),
+	`email`    VARCHAR(255),
+	`password` VARCHAR(30),
+	`image` VARCHAR(255),
+	`lang` VARCHAR(10),
+	`activation_key` VARCHAR(255),
+	'active'   INT default 0,
+	'created_at'  INT,
+	'last_modified_at'  INT
 );
 
 CREATE TABLE IF NOT EXISTS user_roles
 (
-	user_id INTEGER NOT NULL,
-	role_id INTEGER NOT NULL
+	user_id INT NOT NULL,
+	role_id INT NOT NULL
 );
 
 insert into users (id, username, email, password, active, created_at) values (1, 'admin', 'admin@local', '$2a$10$p9TRp2W3W4Hf4L6FrBXmAeMgJXKODbtCng97kG4GTuDuR6lTemsLy', 1, datetime('now')); -- adminadminadmin

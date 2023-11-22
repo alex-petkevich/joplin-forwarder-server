@@ -1,1 +1,1 @@
-ALTER TABLE mails ADD `processed_id` TEXT;
+ALTER TABLE mails ADD `processed_id` VARCHAR(255);

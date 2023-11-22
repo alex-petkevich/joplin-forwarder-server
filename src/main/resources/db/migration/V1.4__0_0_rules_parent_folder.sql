@@ -1,1 +1,1 @@
-ALTER TABLE rules ADD `save_in_parent_id` TEXT;
+ALTER TABLE rules ADD `save_in_parent_id` VARCHAR(255);

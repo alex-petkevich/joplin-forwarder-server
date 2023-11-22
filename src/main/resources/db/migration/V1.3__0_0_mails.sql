@@ -1,15 +1,15 @@
 CREATE TABLE mails
 (
-    `id`        INTEGER PRIMARY KEY AUTOINCREMENT,
-    `user_id`   INTEGER NOT NULL,
-    `rule_id`   INTEGER NOT NULL,  -- from RULES table
+    `id`        INT PRIMARY KEY AUTOINCREMENT,
+    `user_id`   INT NOT NULL,
+    `rule_id`   INT NOT NULL,  -- from RULES table
     `text`      TEXT,
-    `subject`   TEXT,
-    `sender`    TEXT,
-    `recipient` TEXT,
-    `attachments` TEXT,
-    `message_id`    TEXT,   -- message id from email headers (Message-ID if exists)
-    `converted`                    -- is email already stored in Joplin db
-    `received`  INTEGER,           -- mail date
-    `added_at`  INTEGER           -- saved date in the table
+    `subject`   VARCHAR(255),
+    `sender`    VARCHAR(255),
+    `recipient` VARCHAR(255),
+    `attachments` VARCHAR(255),
+    `message_id`    VARCHAR(255),   -- message id from email headers (Message-ID if exists)
+    `converted`  TINYINT,                  -- is email already stored in Joplin db
+    `received`  TINYINT,           -- mail date
+    `added_at`  TINYINT           -- saved date in the table
 );
