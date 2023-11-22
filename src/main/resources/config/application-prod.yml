@@ -17,12 +17,16 @@ spring:
         prepStmtCacheSqlLimit: 2048
         useServerPrepStmts: true
   jpa:
-     database-platform: org.hibernate.dialect.MariaDBDialect
+     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
      database: MYSQL
      show-sql: false
      properties:
+       hibernate.id.new_generator_mappings: true
+       hibernate.connection.provider_disables_autocommit: true
+       hibernate.cache.use_second_level_cache: true
+       hibernate.cache.use_query_cache: false
+       hibernate.generate_statistics: false
        hibernate:
-         dialect: org.hibernate.dialect.MariaDBDialect
          jdbc:
            lob:
              non_contextual_creation: true
