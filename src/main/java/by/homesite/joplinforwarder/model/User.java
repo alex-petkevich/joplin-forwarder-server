@@ -84,6 +84,6 @@ public class User
 	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
 	private List<Settings> settingsList;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Rule> rules;
 }
