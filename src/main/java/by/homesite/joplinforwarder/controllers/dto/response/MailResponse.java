@@ -38,7 +38,8 @@ public class MailResponse {
     private Integer processed;
 
     @Column(name = "added_at")
-    private Integer addedAt;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    private OffsetDateTime created_at;
 
     private String attachments;
 
