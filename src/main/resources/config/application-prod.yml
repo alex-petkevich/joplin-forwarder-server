@@ -39,13 +39,13 @@ server:
 # App Properties
 application:
   general:
-    baseUrl: 'http://api-fw.homesite.by/'
+    baseUrl: 'https://fw.homesite.by/'
     crawler-schedulers: true
   mail:
     from: support-joplin@homesite.by
-    baseUrl: 'http://fw.homesite.by/'
+    baseUrl: 'https://fw.homesite.by/'
   upload:
     local-path: '/mnt/vol1/www/joplin/data/'
     upload-dir: uploads
   cors:
-    allowed-origins: 'http://api-fw.homesite.by/'
+    allowed-origins: 'https://fw.homesite.by/'
