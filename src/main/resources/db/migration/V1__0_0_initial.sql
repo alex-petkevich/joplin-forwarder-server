@@ -10,18 +10,18 @@ insert into roles (id, name) values (3, 'ROLE_USER');
 
 CREATE TABLE IF NOT EXISTS `users`
 (
-	`id`       INT PRIMARY KEY AUTO_INCREMENT,
-	`username` VARCHAR(255),
-	`firstname` VARCHAR(255),
-	`lastname` VARCHAR(255),
-	`email`    VARCHAR(255),
-	`password` VARCHAR(30),
-	`image` VARCHAR(255),
-	`lang` VARCHAR(10),
-	`activation_key` VARCHAR(255),
-	'active'   INT default 0,
-	'created_at'  INT,
-	'last_modified_at'  INT
+    `id`       INT PRIMARY KEY AUTO_INCREMENT,
+    `username` VARCHAR(255),
+    `firstname` VARCHAR(255),
+    `lastname` VARCHAR(255),
+    `email`    VARCHAR(255),
+    `password` VARCHAR(30),
+    `image` VARCHAR(255),
+    `lang` VARCHAR(10),
+    `activation_key` VARCHAR(255),
+    `active`   INT default 0,
+    `created_at`  INT,
+    `last_modified_at`  INT
 );
 
 CREATE TABLE IF NOT EXISTS user_roles
