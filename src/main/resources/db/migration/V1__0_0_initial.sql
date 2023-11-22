@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `users`
     `firstname` VARCHAR(255),
     `lastname` VARCHAR(255),
     `email`    VARCHAR(255),
-    `password` VARCHAR(50),
+    `password` VARCHAR(150),
     `image` VARCHAR(255),
     `lang` VARCHAR(10),
     `activation_key` VARCHAR(255),
