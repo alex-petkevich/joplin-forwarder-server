@@ -1,10 +1,12 @@
 logging:
   level:
-    ROOT: DEBUG
-    by.homesite.joplinforwarder: DEBUG
+    ROOT: INFO
+    by.homesite.joplinforwarder: INFO
 spring:
   datasource:
-    url: 'jdbc:sqlite:/mnt/vol1/www/joplin/joplinforwarder.db'
+    url: 'jdbc:jdbc:mariadb://localhost:3306/joplin'
+    username: joplin
+    password: jopjopjop
     hikari:
       poolName: Hikari
       auto-commit: true
@@ -16,7 +18,7 @@ spring:
   jpa:
      properties:
        hibernate:
-         dialect: org.sqlite.hibernate.dialect.SQLiteDialect
+         dialect: org.hibernate.dialect.MariaDBDialect
          jdbc:
            lob:
              non_contextual_creation: true
