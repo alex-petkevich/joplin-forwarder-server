@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS user_roles
 	role_id INT NOT NULL
 );
 
-insert into users (id, username, email, password, active, created_at) values (1, 'admin', 'admin@local', '$2a$10$p9TRp2W3W4Hf4L6FrBXmAeMgJXKODbtCng97kG4GTuDuR6lTemsLy', 1, datetime('now')); -- adminadminadmin
+insert into users (id, username, email, password, active, created_at) values (1, 'admin', 'admin@local', '$2a$10$p9TRp2W3W4Hf4L6FrBXmAeMgJXKODbtCng97kG4GTuDuR6lTemsLy', 1, NOW()); -- adminadminadmin
 
 insert into user_roles values (1, 1);
 
