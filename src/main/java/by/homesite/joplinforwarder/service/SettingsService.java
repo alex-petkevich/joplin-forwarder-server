@@ -10,19 +10,23 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class SettingsService
 {
-	@Autowired
-	private SettingsRepository settingsRepository;
+	private final SettingsRepository settingsRepository;
 
-	@Autowired
-	private ApplicationProperties applicationProperties;
+	private final ApplicationProperties applicationProperties;
 
-	public void saveSettings(User user, HashMap<String, String> values)
+	public SettingsService(SettingsRepository settingsRepository, ApplicationProperties applicationProperties) {
+		this.settingsRepository = settingsRepository;
+		this.applicationProperties = applicationProperties;
+	}
+
+	public void saveSettings(User user, Map<String, String> values)
 	{
 		values.forEach((name, value) -> {
 			this.setSettingValue(user, name, value);

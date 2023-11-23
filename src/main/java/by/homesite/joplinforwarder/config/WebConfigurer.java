@@ -28,11 +28,11 @@ public class WebConfigurer implements ServletContextInitializer {
 
     private final Environment env;
 
-    @Autowired
-    private ApplicationProperties applicationProperties;
+    private final ApplicationProperties applicationProperties;
 
-    public WebConfigurer(Environment env) {
+    public WebConfigurer(Environment env, ApplicationProperties applicationProperties) {
         this.env = env;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override

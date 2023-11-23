@@ -56,7 +56,6 @@ public class User
 	@Email
 	private String email;
 	
-	@NotBlank
 	@Size(max = 120)
 	private String password;
 

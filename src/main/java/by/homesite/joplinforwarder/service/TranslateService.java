@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class TranslateService
 {
-	@Autowired
-	private MessageSource messageSource;
+	private final MessageSource messageSource;
+
+	public TranslateService(MessageSource messageSource) {
+		this.messageSource = messageSource;
+	}
 
 	public String get(String key) {
 		return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());

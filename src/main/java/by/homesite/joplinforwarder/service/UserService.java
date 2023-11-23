@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,23 +28,24 @@ import by.homesite.joplinforwarder.security.services.UserDetailsImpl;
 @Service
 public class UserService
 {
+	public static final String SUCCESSFUL = "successful";
 	final AuthenticationManager authenticationManager;
 	final JwtUtils jwtUtils;
 	final UserRepository userRepository;
 	final PasswordEncoder encoder;
-	private SendMailService sendMailService;
+	private final SendMailService sendMailService;
 
-	@Autowired
-	private ApplicationProperties applicationProperties;
+	private final ApplicationProperties applicationProperties;
 
 	public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository,
-			PasswordEncoder encoder, SendMailService sendMailService)
+					   PasswordEncoder encoder, SendMailService sendMailService, ApplicationProperties applicationProperties)
 	{
 		this.authenticationManager = authenticationManager;
 		this.jwtUtils = jwtUtils;
 		this.userRepository = userRepository;
 		this.encoder = encoder;
 		this.sendMailService = sendMailService;
+		this.applicationProperties = applicationProperties;
 	}
 
 	public JwtResponse authenticate(String username, String password)
@@ -82,14 +82,13 @@ public class UserService
 	{
 		User user = new User();
 		user.setUsername(signUpRequest.getUsername());
-		user.setPassword(encoder.encode(signUpRequest.getPassword()));
 		user.setEmail(signUpRequest.getEmail());
 		user.setFirstname(signUpRequest.getFirstname());
 		user.setLastname(signUpRequest.getLastname());
 		user.setActive(0);
 		user.setCreatedAt(OffsetDateTime.now());
 		user.setLastModifiedAt(OffsetDateTime.now());
-		user.setLang(applicationProperties.getGeneral().getDefault_lang());
+		user.setLang(applicationProperties.getGeneral().getDefaultLang());
 		user.setActivationKey(generateActivationKey());	
 		if (roles != null)
 		{
@@ -146,7 +145,7 @@ public class UserService
 			userRepository.save(user);
 
 			sendMailService.sendPasswordResetMail(user);
-			return new MessageResponse("successful");
+			return new MessageResponse(SUCCESSFUL);
 		}
 
 		return new MessageResponse("");
@@ -156,7 +155,7 @@ public class UserService
 	{
 		User user = userRepository.findByActivationKey(key).orElse(null);
 		if (user != null && user.getActive() == 1) {
-			return new MessageResponse("successful");
+			return new MessageResponse(SUCCESSFUL);
 		}
 		return new MessageResponse("");
 	}
@@ -170,7 +169,7 @@ public class UserService
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
 			
-			return new MessageResponse("successful");
+			return new MessageResponse(SUCCESSFUL);
 		}
 		
 		return new MessageResponse("");

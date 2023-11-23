@@ -4,14 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.Authentication;
@@ -51,7 +54,8 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void save(MultipartFile file)
 	{
-		if (getUserDir() == null || file.getOriginalFilename() == null) {
+		Path dir = getUserDir();
+		if (dir == null || file.getOriginalFilename() == null) {
 			return;
 		}
 
@@ -59,7 +63,7 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 
 		try
 		{
-			Files.copy(file.getInputStream(), getUserDir().resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(file.getInputStream(), dir.resolve(file.getOriginalFilename()), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (Exception e)
 		{
@@ -70,13 +74,14 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public Resource load(String filename)
 	{
-		if (getUserDir() == null) {
+		Path dir = getUserDir();
+		if (dir == null) {
 			return null;
 		}
 
 		try
 		{
-			Path file = getUserDir().resolve(filename);
+			Path file = dir.resolve(filename);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable())
 			{
@@ -96,11 +101,12 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	@Override
 	public void deleteAll()
 	{
-		if (getUserDir() == null) {
+		Path dir = getUserDir();
+		if (dir == null) {
 			return;
 		}
 
-		FileSystemUtils.deleteRecursively(getUserDir().toFile());
+		FileSystemUtils.deleteRecursively(dir.toFile());
 	}
 
 	@Override
@@ -115,15 +121,16 @@ public class FilesystemFilesStorageServiceImpl implements FilesStorageService
 	}
 
 	@Override
+	@Cacheable(cacheNames = LOAD_AVATAR)
 	public List<Path> loadAllByUsername(String userId) {
 		Path userDir = Paths.get(getUploadDir(userId));
 
-		try
-		{
-			return Files
-					.walk(userDir, 1)
-					.filter(path -> !path.equals(userDir))
-					.collect(Collectors.toList());
+		try (Stream<Path> rs = Files.walk(userDir, 1)) {
+			return rs.filter(path -> !path.equals(userDir)).toList();
+		}
+		catch(NoSuchFileException e) {
+			init();
+			return this.loadAllByUsername(userId);
 		}
 		catch (IOException e)
 		{

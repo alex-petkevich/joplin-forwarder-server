@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FilesStorageService
 {
+	String LOAD_AVATAR = "loadAvatar";
+
 	void init();
 
 	void save(MultipartFile file);

@@ -2,6 +2,7 @@ package by.homesite.joplinforwarder.security.jwt;
 
 import java.util.Date;
 
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtils
@@ -37,14 +40,16 @@ public class JwtUtils
 
 	public String getUserNameFromJwtToken(String token)
 	{
-		return Jwts.parser().setSigningKey(applicationProperties.getGeneral().getJwtSecret()).parseClaimsJws(token).getBody().getSubject();
+		SecretKey secret = Keys.hmacShaKeyFor(applicationProperties.getGeneral().getJwtSecret().getBytes());
+		return Jwts.parser().verifyWith(secret).build().parseSignedClaims(token).getPayload().getSubject();
 	}
 
 	public boolean validateJwtToken(String authToken)
 	{
 		try
 		{
-			Jwts.parser().setSigningKey(applicationProperties.getGeneral().getJwtSecret()).parseClaimsJws(authToken);
+			SecretKey secret = Keys.hmacShaKeyFor(applicationProperties.getGeneral().getJwtSecret().getBytes());
+			Jwts.parser().verifyWith(secret).build().parseSignedClaims(authToken);
 			return true;
 		}
 		catch (SignatureException e)

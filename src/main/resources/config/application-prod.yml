@@ -58,3 +58,8 @@ application:
     upload-dir: uploads
   cors:
     allowed-origins: 'https://fw.homesite.by/'
+  cache:
+    max-entries: 1000
+    time-to-live-seconds: 3600
+  security:
+    seed-key: 320bb523b651c669faaf027266d8bc33a98c461e73ba9747f79166d21a9f16ae2d6f6af8d9dd155794d40528d2a67c4c7c8b

@@ -7,28 +7,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @NoArgsConstructor
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
+@Getter
 public class ApplicationProperties {
 
     private final ApplicationProperties.General general = new ApplicationProperties.General();
     private final ApplicationProperties.Cors cors = new ApplicationProperties.Cors();
     private final ApplicationProperties.Mail mail = new ApplicationProperties.Mail();
     private final ApplicationProperties.Upload upload = new ApplicationProperties.Upload();
-
-    public General getGeneral() {
-        return general;
-    }
-
-    public Cors getCors() {
-        return cors;
-    }
-
-    public Mail getMail() {
-        return mail;
-    }
-
-    public Upload getUpload() {
-        return upload;
-    }
+    private final ApplicationProperties.Security security = new ApplicationProperties.Security();
+    private final ApplicationProperties.Cache cache = new ApplicationProperties.Cache();
 
     @Getter
     @Setter
@@ -37,7 +24,7 @@ public class ApplicationProperties {
         private String baseUrl = "baseUrl";
         private String jwtSecret = "jwtSecret";
         private String jwtExpirationMs = "jwtExpirationMs";
-        private String default_lang = "default_lang";
+        private String defaultLang = "default_lang";
         private String crawlerSchedulers = "crawler-schedulers";
         private String rateSchedulers = "rate-schedulers";
     }
@@ -69,5 +56,20 @@ public class ApplicationProperties {
         private String localPath = "local-path";
         private String uploadDir = "upload-dir";
         private String attachDir = "attach-dir";
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Cache {
+        private String timeToLiveSeconds = "time-to-live-seconds";
+        private String maxEntries = "max-entries";
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Security {
+        private String seedKey = "seed-key";
     }
 }
