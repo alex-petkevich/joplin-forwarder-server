@@ -25,3 +25,4 @@ target/
 hs_err_pid*
 /src/main/resources/META-INF/additional-spring-configuration-metadata.json
 /target/classes/META-INF/additional-spring-configuration-metadata.json
+/target/
