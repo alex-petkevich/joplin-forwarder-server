@@ -23,7 +23,7 @@ spring:
      properties:
        hibernate.id.new_generator_mappings: true
        hibernate.connection.provider_disables_autocommit: true
-       hibernate.cache.use_second_level_cache: false
+       hibernate.cache.use_second_level_cache: true
        hibernate.cache.use_query_cache: false
        hibernate.generate_statistics: false
        hibernate:
@@ -62,4 +62,4 @@ application:
     max-entries: 1000
     time-to-live-seconds: 3600
   security:
-    seed-key: 320bb523b651c669faaf027266d8bc33a98c461e73ba9747f79166d21a9f16ae2d6f6af8d9dd155794d40528d2a67c4c7c8b
+    seed-key: 320bb523b651c669faaf027266d8bc33a98c46

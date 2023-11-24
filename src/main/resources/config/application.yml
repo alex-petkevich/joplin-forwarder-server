@@ -45,7 +45,7 @@ spring:
 # App Properties
 application:
   general:
-    jwtSecret: joplinforwarderSecretKey
+    jwtSecret: 320bb523b651c669faaf027266d8bc33a98c461e73ba9747f79166d21a9f16ae2d6f6af8d9dd155794d40528d2
     jwtExpirationMs: 86400000
     default_lang: en
   cors:
