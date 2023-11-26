@@ -3,11 +3,11 @@ package by.homesite.joplinforwarder.service;
 import by.homesite.joplinforwarder.util.SendMailUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.MailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.User;
@@ -24,7 +24,7 @@ public class SendMailService {
 
     private static final String BASE_URL = "baseUrl";
 
-    private final JavaMailSender javaMailSender;
+    private final MailSender mailSender;
 
     private final SendMailUtil sendEmail;
 
@@ -33,10 +33,10 @@ public class SendMailService {
     private final ApplicationProperties applicationProperties;
 
     public SendMailService(
-            JavaMailSender javaMailSender,
+            MailSender mailSender,
             SendMailUtil sendEmail, SpringTemplateEngine templateEngine,
             ApplicationProperties applicationProperties) {
-        this.javaMailSender = javaMailSender;
+        this.mailSender = mailSender;
         this.sendEmail = sendEmail;
         this.templateEngine = templateEngine;
         this.applicationProperties = applicationProperties;

@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,30 +28,37 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class SettingsController
 {
-	@Autowired
+	final
 	UserService userService;
 
-	@Autowired
+	final
 	SettingsService settingsService;
 
-	@Autowired
+	final
 	ApplicationProperties applicationProperties;
 
-	@Autowired
+	final
 	SettingsMapper settingsMapper;
+
+	public SettingsController(UserService userService, SettingsService settingsService, ApplicationProperties applicationProperties, SettingsMapper settingsMapper) {
+		this.userService = userService;
+		this.settingsService = settingsService;
+		this.applicationProperties = applicationProperties;
+		this.settingsMapper = settingsMapper;
+	}
 
 	@GetMapping("/")
 	@ResponseBody
 	public ResponseEntity<List<SettingsResponse>> getUserSettings()
 	{
 		User user = userService.getCurrentUser();
-		List<SettingsResponse> result = settingsService.getUserSettings(user.getId()).stream().map(settingsMapper::toEntity).collect(Collectors.toList());
+		List<SettingsResponse> result = settingsService.getUserSettings(user.getId()).stream().map(settingsMapper::toEntity).toList();
 
 		return ResponseEntity.ok(result);
 	}
 
 	@PostMapping("/")
-	public ResponseEntity<?> save(@Valid @RequestBody HashMap<String, String> userSettings)
+	public ResponseEntity<?> save(@Valid @RequestBody Map<String, String> userSettings)
 	{
 		User user = userService.getCurrentUser();
 		settingsService.saveSettings(user, userSettings);

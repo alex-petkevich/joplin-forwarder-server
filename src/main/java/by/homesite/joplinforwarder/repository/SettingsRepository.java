@@ -13,9 +13,9 @@ import java.util.List;
 public interface SettingsRepository extends JpaRepository<Settings, Long>
 {
     String SETTINGS_EMAIL_CACHE = "settingsEmailCache";
-    List<Settings> getByUserId(Long userId);
+    List<Settings> getByUserId(Integer userId);
 
-    Settings getByUserIdAndName(Long userId, String name);
+    Settings getByUserIdAndName(Integer userId, String name);
 
     @Cacheable(cacheNames = SETTINGS_EMAIL_CACHE)
     @Query("SELECT user FROM Settings WHERE name = 'period' AND value != ''")

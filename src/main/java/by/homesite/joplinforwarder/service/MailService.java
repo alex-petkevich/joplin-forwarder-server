@@ -5,21 +5,15 @@ import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.storage.StorageService;
-import org.hibernate.Filter;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +41,7 @@ public class MailService
 		return mailRepository.save(mail);
 	}
 
-	public Page<Mail> getUserMails(Long userId, Pageable pageable)
+	public Page<Mail> getUserMails(Integer userId, Pageable pageable)
 	{
 		/*Session session = entityManager.unwrap(Session.class);
 		Filter filter = session.enableFilter("deletedProductFilter");
@@ -58,12 +52,12 @@ public class MailService
 		return mailRepository.getByUserIdOrderByReceivedDesc(userId, pageable);
 	}
 
-	public Mail getMail(Integer id, Long userId)
+	public Mail getMail(Integer id, Integer userId)
 	{
 		return mailRepository.getByIdAndUserId(id, userId);
 	}
 
-	public void deleteMail(Integer id, Long userId)
+	public void deleteMail(Integer id, Integer userId)
 	{
 		Mail mail = mailRepository.getByIdAndUserId(id, userId);
 		if (mail != null) {

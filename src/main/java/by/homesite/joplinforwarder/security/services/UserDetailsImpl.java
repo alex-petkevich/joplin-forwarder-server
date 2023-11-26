@@ -3,8 +3,8 @@ package by.homesite.joplinforwarder.security.services;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,16 +19,19 @@ public class UserDetailsImpl implements UserDetails
 {
 	@Serial
 	private static final long serialVersionUID = 1L;
-	private final Long id;
+	@Getter
+	private final Integer id;
 	private final String username;
+	@Getter
 	private final String email;
 	@JsonIgnore
 	private final String password;
 	private final Boolean active;
+	@Getter
 	private final String lang;
 	private final Collection<? extends GrantedAuthority> authorities;
 
-	public UserDetailsImpl(Long id, String username, String email, String password, Boolean active, String lang,
+	public UserDetailsImpl(Integer id, String username, String email, String password, Boolean active, String lang,
 			Collection<? extends GrantedAuthority> authorities)
 	{
 		this.id = id;
@@ -42,9 +45,9 @@ public class UserDetailsImpl implements UserDetails
 
 	public static UserDetailsImpl build(User user)
 	{
-		List<GrantedAuthority> authorities = user.getRoles().stream()
+		List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
 				.map(role -> new SimpleGrantedAuthority(role.getName().name()))
-				.collect(Collectors.toList());
+				.toList();
 		return new UserDetailsImpl(
 				user.getId(),
 				user.getUsername(),
@@ -59,16 +62,6 @@ public class UserDetailsImpl implements UserDetails
 	public Collection<? extends GrantedAuthority> getAuthorities()
 	{
 		return authorities;
-	}
-
-	public Long getId()
-	{
-		return id;
-	}
-
-	public String getEmail()
-	{
-		return email;
 	}
 
 	@Override
@@ -107,8 +100,4 @@ public class UserDetailsImpl implements UserDetails
 		return active;
 	}
 
-	public String getLang()
-	{
-		return lang;
-	}
 }

@@ -1,6 +1,6 @@
 package by.homesite.joplinforwarder.controllers;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,14 +28,15 @@ public class UserController {
 	private final UserMapper userMapper;
 	private final UserSignupRequestMapper userSignupRequestMapper;
 
-	@Autowired
+	final
 	TranslateService translate;
 
-	public UserController(UserService userService, UserMapper userMapper, UserSignupRequestMapper userSignupRequestMapper)
+	public UserController(UserService userService, UserMapper userMapper, UserSignupRequestMapper userSignupRequestMapper, TranslateService translate)
 	{
 		this.userService = userService;
 		this.userMapper = userMapper;
 		this.userSignupRequestMapper = userSignupRequestMapper;
+		this.translate = translate;
 	}
 
 	@PostMapping("/")
@@ -71,7 +72,6 @@ public class UserController {
 	}
 
 	@PostMapping("/lang")
-	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
 	public ResponseEntity<?> saveUserLang(@RequestBody SignupRequest userRequest) {
 		User currentUserData = userService.getCurrentUser();
 

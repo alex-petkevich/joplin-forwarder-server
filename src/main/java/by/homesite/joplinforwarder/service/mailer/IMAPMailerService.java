@@ -11,20 +11,22 @@ import by.homesite.joplinforwarder.service.SettingsService;
 import by.homesite.joplinforwarder.service.mailer.mapper.IMAPMailMessageMapper;
 import by.homesite.joplinforwarder.service.storage.StorageService;
 import by.homesite.joplinforwarder.util.MailUtil;
-import com.sun.mail.imap.IMAPFolder;
 import io.jsonwebtoken.lang.Collections;
 
+import org.eclipse.angus.mail.imap.IMAPFolder;
+import org.eclipse.angus.mail.imap.IMAPMessage;
+import org.eclipse.angus.mail.util.MailSSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Store;
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Store;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,9 +38,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
-import com.sun.mail.imap.IMAPMessage;
-import com.sun.mail.util.MailSSLSocketFactory;
 
 @Service
 public class IMAPMailerService implements MailerService
@@ -91,7 +90,7 @@ public class IMAPMailerService implements MailerService
 
         Properties properties = configureImapConnection();
 
-        final javax.mail.Session session = javax.mail.Session.getInstance(properties);
+        final jakarta.mail.Session session = jakarta.mail.Session.getInstance(properties);
         try
         {
             Store store = session.getStore("imaps");
@@ -226,7 +225,7 @@ public class IMAPMailerService implements MailerService
         return mailRepository.getByUserAndMessageId(user, id);
     }
 
-    private String getLastSavedMessageId(Long id) {
+    private String getLastSavedMessageId(Integer id) {
         Mail recentMail = mailRepository.findTop1ByUserIdOrderByReceivedDesc(id);
         if (recentMail != null) {
             return recentMail.getMessageId();

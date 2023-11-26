@@ -6,14 +6,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.mail.Address;
-import javax.mail.MessagingException;
+import jakarta.mail.Address;
+import jakarta.mail.MessagingException;
 
+import org.eclipse.angus.mail.imap.IMAPMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import com.sun.mail.imap.IMAPMessage;
 
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.util.BasicMapper;
@@ -41,7 +40,7 @@ public class IMAPMailMessageMapper implements BasicMapper<Mail, IMAPMessage>
 
 			mail.setReceived(mess.getReceivedDate().toInstant().atOffset(ZoneOffset.UTC));
 			String recipients = Arrays.stream(mess.getAllRecipients())
-					.map(javax.mail.Address::toString)
+					.map(jakarta.mail.Address::toString)
 					.collect(Collectors.joining(","));
 			String sender = Arrays.stream(mess.getFrom())
 					.map(Address::toString)

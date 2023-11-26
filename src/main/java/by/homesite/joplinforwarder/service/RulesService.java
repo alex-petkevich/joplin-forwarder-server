@@ -15,11 +15,14 @@ import java.util.regex.Pattern;
 @Service
 public class RulesService
 {
-	@Autowired
-	private RulesRepository rulesRepository;
+	private final RulesRepository rulesRepository;
 
-	@Autowired
-	private ApplicationProperties applicationProperties;
+	private final ApplicationProperties applicationProperties;
+
+	public RulesService(RulesRepository rulesRepository, ApplicationProperties applicationProperties) {
+		this.rulesRepository = rulesRepository;
+		this.applicationProperties = applicationProperties;
+	}
 
 	public Rule saveRule(User user, Rule rule)
 	{
@@ -27,22 +30,22 @@ public class RulesService
 		return rulesRepository.save(rule);
 	}
 
-	public List<Rule> getUserRules(Long userId)
+	public List<Rule> getUserRules(Integer userId)
 	{
 		return rulesRepository.getByUserIdOrderByPriority(userId);
 	}
 
-	public List<Rule> getUserActiveRules(Long userId)
+	public List<Rule> getUserActiveRules(Integer userId)
 	{
 		return rulesRepository.getByUserIdAndActiveOrderByPriority(userId, true);
 	}
 
-	public Rule getRule(Integer id, Long userId)
+	public Rule getRule(Integer id, Integer userId)
 	{
 		return rulesRepository.getByIdAndUserId(id, userId);
 	}
 
-	public void deleteRule(Integer id, Long userId)
+	public void deleteRule(Integer id, Integer userId)
 	{
 		Rule rule = rulesRepository.getByIdAndUserId(id, userId);
 		if (rule != null) {

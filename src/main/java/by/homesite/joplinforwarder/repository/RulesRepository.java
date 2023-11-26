@@ -9,9 +9,9 @@ import java.util.List;
 @Repository
 public interface RulesRepository extends JpaRepository<Rule, Long>
 {
-    List<Rule> getByUserIdOrderByPriority(Long userId);
+    List<Rule> getByUserIdOrderByPriority(Integer userId);
 
-    List<Rule> getByUserIdAndActiveOrderByPriority(Long userId, Boolean active);
+    List<Rule> getByUserIdAndActiveOrderByPriority(Integer userId, Boolean active);
 
-    Rule getByIdAndUserId(Integer id, Long userId);
+    Rule getByIdAndUserId(Integer id, Integer userId);
 }

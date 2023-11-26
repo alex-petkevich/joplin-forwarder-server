@@ -3,7 +3,7 @@ package by.homesite.joplinforwarder.controllers;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +29,20 @@ import by.homesite.joplinforwarder.service.UserService;
 @RequestMapping("/api/account")
 public class AccountController
 {
-	@Autowired
+	final
 	RoleRepository roleRepository;
 
-	@Autowired
+	final
 	UserService userService;
 	
-	@Autowired
+	final
 	TranslateService translate;
+
+	public AccountController(RoleRepository roleRepository, UserService userService, TranslateService translate) {
+		this.roleRepository = roleRepository;
+		this.userService = userService;
+		this.translate = translate;
+	}
 
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)

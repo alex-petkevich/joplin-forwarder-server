@@ -12,11 +12,11 @@ import java.util.List;
 @Repository
 public interface MailRepository extends JpaRepository<Mail, Long>
 {
-    Page<Mail> getByUserIdOrderByReceivedDesc(Long userId, Pageable pageable);
+    Page<Mail> getByUserIdOrderByReceivedDesc(Integer userId, Pageable pageable);
 
     Mail getByUserAndMessageId(User user, String messageId);
 
-    Mail getByIdAndUserId(Integer id, Long userId);
+    Mail getByIdAndUserId(Integer id, Integer userId);
 
-    Mail findTop1ByUserIdOrderByReceivedDesc(Long userId);
+    Mail findTop1ByUserIdOrderByReceivedDesc(Integer userId);
 }

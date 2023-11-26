@@ -1,8 +1,9 @@
 logging:
   level:
     ROOT: INFO
-    tech.jhipster: INFO
-    by.homesite.gator: INFO
+    by:
+      homesite:
+        joplinforwarder: INFO
 spring:
   devtools:
     restart:
@@ -27,7 +28,6 @@ spring:
         prepStmtCacheSqlLimit: 2048
         useServerPrepStmts: true
   jpa:
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     database: MYSQL
     show-sql: true
     properties:
@@ -40,6 +40,7 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+        dialect: org.hibernate.dialect.MySQLDialect
   mail:
     host: localhost
     port: '2525'

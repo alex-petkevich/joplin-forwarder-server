@@ -1,8 +1,6 @@
 package by.homesite.joplinforwarder.exception;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,10 +10,14 @@ import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.service.TranslateService;
 
 @ControllerAdvice
-public class FileUploadExceptionAdvice extends ResponseEntityExceptionHandler
+public class FileUploadExceptionAdvice
 {
-	@Autowired
+	final
 	TranslateService translate;
+
+	public FileUploadExceptionAdvice(TranslateService translate) {
+		this.translate = translate;
+	}
 
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ResponseEntity<MessageResponse> handleMaxSizeException(MaxUploadSizeExceededException exc)

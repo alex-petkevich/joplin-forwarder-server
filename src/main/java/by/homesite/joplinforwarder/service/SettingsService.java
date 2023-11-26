@@ -4,15 +4,12 @@ import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Settings;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.SettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class SettingsService
@@ -47,7 +44,7 @@ public class SettingsService
 		return settingsRepository.save(currentSetting);
 	}
 
-	public List<Settings> getUserSettings(Long userId)
+	public List<Settings> getUserSettings(Integer userId)
 	{
 
 		return settingsRepository.getByUserId(userId);

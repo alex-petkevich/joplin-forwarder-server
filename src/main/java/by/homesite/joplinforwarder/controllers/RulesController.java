@@ -8,7 +8,6 @@ import by.homesite.joplinforwarder.model.Rule;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.RulesService;
 import by.homesite.joplinforwarder.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,17 +28,24 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class RulesController
 {
-	@Autowired
+	final
 	UserService userService;
 
-	@Autowired
+	final
 	RulesService rulesService;
 
-	@Autowired
+	final
 	RuleMapper ruleMapper;
 
-	@Autowired
+	final
 	RuleRequestMapper ruleRequestMapper;
+
+	public RulesController(UserService userService, RulesService rulesService, RuleMapper ruleMapper, RuleRequestMapper ruleRequestMapper) {
+		this.userService = userService;
+		this.rulesService = rulesService;
+		this.ruleMapper = ruleMapper;
+		this.ruleRequestMapper = ruleRequestMapper;
+	}
 
 	@GetMapping("/")
 	@ResponseBody

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,17 +45,24 @@ public class MailsController
 {
 	private static final int MAIL_RECORDS_LIMIT = 20;
 
-	@Autowired
+	final
 	UserService userService;
 
-	@Autowired
+	final
 	MailService mailService;
 
-	@Autowired
+	final
 	MailMapper mailMapper;
 
-	@Autowired
+	final
 	MailRequestMapper mailRequestMapper;
+
+	public MailsController(UserService userService, MailService mailService, MailMapper mailMapper, MailRequestMapper mailRequestMapper) {
+		this.userService = userService;
+		this.mailService = mailService;
+		this.mailMapper = mailMapper;
+		this.mailRequestMapper = mailRequestMapper;
+	}
 
 	@GetMapping("/")
 	@ResponseBody

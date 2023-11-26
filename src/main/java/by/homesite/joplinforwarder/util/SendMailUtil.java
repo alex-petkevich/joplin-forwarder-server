@@ -6,26 +6,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.nio.charset.StandardCharsets;
+import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class SendMailUtil {
 
-    private final JavaMailSender javaMailSender;
+    private final JavaMailSender mailSender;
 
     private final ApplicationProperties applicationProperties;
 
     private final Logger log = LoggerFactory.getLogger(SendMailUtil.class);
 
     public SendMailUtil(
-            JavaMailSender javaMailSender,
+            JavaMailSender mailSender,
             ApplicationProperties applicationProperties) {
-        this.javaMailSender = javaMailSender;
+        this.mailSender = mailSender;
         this.applicationProperties = applicationProperties;
     }
 
@@ -40,17 +39,21 @@ public class SendMailUtil {
                 content
         );
 
-        // Prepare message using a Spring helper
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
         try {
-            MimeMessageHelper message = new MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name());
-            message.setTo(to);
-            message.setFrom(applicationProperties.getMail().getFrom());
-            message.setSubject(subject);
-            message.setText(content, isHtml);
-            javaMailSender.send(mimeMessage);
+            // Prepare message using a Spring helper
+            MimeMessagePreparator preparator = new MimeMessagePreparator() {
+                public void prepare(MimeMessage mimeMessage) throws Exception {
+                    MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
+                    message.setTo(to);
+                    message.setFrom(applicationProperties.getMail().getFrom());
+                    message.setSubject(subject);
+                    message.setText(content, isHtml);
+                }
+            };
+            this.mailSender.send(preparator);
             log.debug("Sent email to User '{}'", to);
-        } catch (MailException | MessagingException e) {
+        } catch (MailException e) {
             log.warn("Email could not be sent to user '{}'", to, e);
         }
     }

@@ -1,7 +1,6 @@
 package by.homesite.joplinforwarder;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
-import io.micrometer.core.instrument.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -9,7 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+import org.springframework.util.StringUtils;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -60,7 +61,7 @@ public class JoplinforwarderApplication {
 		String serverPort = env.getProperty("server.port");
 		String contextPath = Optional
 				.ofNullable(env.getProperty("server.servlet.context-path"))
-				.filter(StringUtils::isNotBlank)
+				.filter(StringUtils::hasText)
 				.orElse("/");
 		String hostAddress = "localhost";
 		try {

@@ -37,17 +37,24 @@ import by.homesite.joplinforwarder.service.UserService;
 @RequestMapping("/api/files")
 public class FilesController
 {
-	@Autowired
+	final
 	FilesStorageService storageService;
 
-	@Autowired
+	final
 	UserService userService;
 
-	@Autowired
+	final
 	ApplicationProperties applicationProperties;
 
-	@Autowired
+	final
 	TranslateService translate;
+
+	public FilesController(FilesStorageService storageService, UserService userService, ApplicationProperties applicationProperties, TranslateService translate) {
+		this.storageService = storageService;
+		this.userService = userService;
+		this.applicationProperties = applicationProperties;
+		this.translate = translate;
+	}
 
 	@PostMapping("/upload")
 	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file)

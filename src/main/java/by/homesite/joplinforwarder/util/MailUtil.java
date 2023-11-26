@@ -1,31 +1,25 @@
 package by.homesite.joplinforwarder.util;
 
-import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
 
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMultipart;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMultipart;
 
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-
-import com.sun.mail.util.MailSSLSocketFactory;
 
 public class MailUtil
 {
@@ -55,7 +49,7 @@ public class MailUtil
 			if (message.isMimeType("multipart/*")) {
 				MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
 				List<String> attaches = getFilesFromMimeMultipart(mimeMultipart);
-				Objects.requireNonNull(attaches).removeIf(item -> item == null || "".equals(item));
+				Objects.requireNonNull(attaches).removeIf(item -> item == null || item.isEmpty());
 				return attaches;
 			}
 		}

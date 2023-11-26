@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long>
 	@Cacheable(cacheNames = USER_USERNAME_CACHE)
 	Optional<User> findByUsername(String username);
 	
-	Optional<User> findByActivationKey(String key);
+	Optional<User> findByActivationKey(String activationKey);
 	
 	@Query(value = "SELECT u FROM User u WHERE (u.username = :key OR u.email = :key) AND u.lastModifiedAt > u.createdAt")
 	Optional<User> findForResetPassword(@Param("key") String key);
