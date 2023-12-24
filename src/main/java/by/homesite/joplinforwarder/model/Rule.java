@@ -44,7 +44,7 @@ public class Rule
 
 	private String comparison_method;
 
-	private Integer save_in;
+	private Boolean save_in = Boolean.TRUE;
 
 	private Integer priority;
 

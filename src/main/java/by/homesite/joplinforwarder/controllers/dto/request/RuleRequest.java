@@ -22,7 +22,7 @@ public class RuleRequest
 
 	private String comparison_method;
 
-	private Integer save_in;
+	private Boolean save_in;
 
 	private String save_in_parent_id;
 

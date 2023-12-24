@@ -21,7 +21,7 @@ public class RuleResponse {
 
     private String comparison_method;
 
-    private Integer save_in;
+    private Boolean save_in;
 
     private Boolean active;
 
