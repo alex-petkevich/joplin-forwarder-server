@@ -3,14 +3,16 @@ package by.homesite.joplinforwarder.service;
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
-import by.homesite.joplinforwarder.repository.MailRepository;
+import by.homesite.joplinforwarder.model.specification.MailSpecification;
 import by.homesite.joplinforwarder.service.storage.StorageService;
+import by.homesite.joplinforwarder.repository.MailRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
@@ -26,13 +28,10 @@ public class MailService
 	private final ApplicationProperties applicationProperties;
 	private final StorageService storageService;
 
-	private final EntityManager entityManager;
-
-	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties, @Qualifier("storageServiceStrategy") StorageService storageService, EntityManager entityManager) {
+	public MailService(MailRepository mailRepository, ApplicationProperties applicationProperties, @Qualifier("storageServiceStrategy") StorageService storageService) {
 		this.mailRepository = mailRepository;
 		this.applicationProperties = applicationProperties;
 		this.storageService = storageService;
-		this.entityManager = entityManager;
 	}
 
 	public Mail save(User user, Mail mail)
@@ -96,5 +95,26 @@ public class MailService
 				mailRepository.save(mail);
 			}
 		}
+	}
+
+	public Page<Mail> getUserMails(Integer id, String fsubject, String ftext, Boolean fattachments, Boolean fexported, Pageable paging)
+	{
+		Specification<Mail> spec = Specification.where(null);
+
+		if (StringUtils.hasText(fsubject)) {
+			spec = spec.and(MailSpecification.hasSubject(fsubject));
+		}
+		if (StringUtils.hasText(ftext)) {
+			spec = spec.and(MailSpecification.hasText(ftext));
+		}
+		if (fattachments) {
+			spec = spec.and(MailSpecification.hasAttachments(fattachments));
+		}
+		if (fexported) {
+			spec = spec.and(MailSpecification.hasExported(fexported));
+		}
+		spec = spec.and(MailSpecification.hasUserId(id));
+		
+		return mailRepository.findAll(spec, paging);
 	}
 }

@@ -66,12 +66,16 @@ public class MailsController
 
 	@GetMapping("/")
 	@ResponseBody
-	public ResponseEntity<Page<MailResponse>> getUserMails(@RequestParam(defaultValue = "0") int page)
+	public ResponseEntity<Page<MailResponse>> getUserMails(@RequestParam(required = false) String fsubject,
+			@RequestParam(required = false)  String ftext,
+			@RequestParam(required = false)  Boolean fattachments,
+			@RequestParam (required = false) Boolean fexported,
+			@RequestParam(defaultValue = "0") int page)
 	{
 		User user = userService.getCurrentUser();
 		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT);
 
-		Page<MailResponse> result = mailService.getUserMails(user.getId(), paging).map(mailMapper::toEntity);
+		Page<MailResponse> result = mailService.getUserMails(user.getId(), fsubject, ftext, fattachments, fexported, paging).map(mailMapper::toEntity);
 
 		return ResponseEntity.ok(result);
 	}
