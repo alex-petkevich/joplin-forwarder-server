@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import by.homesite.joplinforwarder.util.ControllerUtil;
 import jakarta.validation.Valid;
 
 import java.io.IOException;
@@ -70,11 +72,13 @@ public class MailsController
 			@RequestParam(required = false)  String ftext,
 			@RequestParam(required = false)  Boolean fattachments,
 			@RequestParam (required = false) Boolean fexported,
-			@RequestParam(defaultValue = "0") int page)
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "received-desc") String sort)
 	{
 		User user = userService.getCurrentUser();
-		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT);
 
+		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT, ControllerUtil.getSortOrder(sort));
+		
 		Page<MailResponse> result = mailService.getUserMails(user.getId(), fsubject, ftext, fattachments, fexported, paging).map(mailMapper::toEntity);
 
 		return ResponseEntity.ok(result);
