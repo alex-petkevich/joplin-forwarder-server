@@ -107,10 +107,10 @@ public class MailService
 		if (StringUtils.hasText(ftext)) {
 			spec = spec.and(MailSpecification.hasText(ftext));
 		}
-		if (fattachments) {
+		if (fattachments != null && fattachments) {
 			spec = spec.and(MailSpecification.hasAttachments(fattachments));
 		}
-		if (fexported) {
+		if (fexported != null && fexported) {
 			spec = spec.and(MailSpecification.hasExported(fexported));
 		}
 		spec = spec.and(MailSpecification.hasUserId(id));
