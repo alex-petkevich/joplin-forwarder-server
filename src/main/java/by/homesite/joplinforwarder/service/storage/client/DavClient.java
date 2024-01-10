@@ -11,6 +11,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -256,6 +257,20 @@ public class DavClient {
                     "No File %s will be found.".formatted(httpPut.toString()));
         }
         return webDavFileList.get(0);
+    }
+
+    /**
+     * delete file
+     *
+     * @param fileName the file name relative to the base URL
+     * @return file containing the properties
+     */
+    public boolean delete(String fileName) throws IOException, DavException {
+        String uri = baseUri.toString() + ("/" + fileName).replace("//", "/");
+        HttpDelete httpDelete = new HttpDelete(uri);
+        DavList davList = getServerResponse(fileName, this.client.execute(httpDelete, this.context), httpDelete.toString());
+        List<DavFile> webDavFileList = davList.getFiles();
+        return !webDavFileList.isEmpty();
     }
 
     private DavList getServerResponse(String fileName, CloseableHttpResponse execute, String string) throws IOException, DavException {

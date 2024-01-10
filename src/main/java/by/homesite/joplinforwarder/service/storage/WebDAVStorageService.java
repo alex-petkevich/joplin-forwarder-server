@@ -30,13 +30,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Component
 public class WebDAVStorageService implements StorageService {
 
     public static final String FILE_EXT = ".md";
+    public static final String FILE_LOCKS_EXT = ".json";
+    public static final String APP_ID = "a5fe93768f344188b162a55319bf753e";
     public static final String WEB_DAV_PROCESSING_ERROR = "WebDAV processing error";
+    private static final int RETRY_ATTEMPTS = 10;
 
     private final SettingsService settingsService;
     private final JoplinItemMailMapper mailMapper;
@@ -88,14 +92,53 @@ public class WebDAVStorageService implements StorageService {
         String fileName = parentItem.getId() + FILE_EXT;
         String fileContent = joplinParserUtil.itemToText(parentItem);
 
+        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
+
+        return parentItem.getId();
+    }
+
+    private void storeJoplinNodeInStorage(User user, byte[] fileContent, String fileName) {
+
         try
         {
-            getDavClient(user).put(fileContent.getBytes(), fileName);
+            int pauseCycles = 0;
+            while(this.hasLock(user, "2") && pauseCycles < RETRY_ATTEMPTS) {
+                TimeUnit.SECONDS.sleep(1);
+                pauseCycles++;
+            }
+            if (pauseCycles == RETRY_ATTEMPTS) {
+                log.error("WebDAV Joplin: Can not get write lock to the database");
+                return;
+            }
+            this.createLock(user, "2");
+
+            getDavClient(user).put(fileContent, fileName);
+        } catch (DavException | IOException e) {
+            log.error(WEB_DAV_PROCESSING_ERROR);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        this.releaseLock(user, "2");
+    }
+
+    private void createLock(User user, String type) {
+        String fileContent = """
+{"type":%s,"clientType":1,"clientId":"%s"}
+                """.formatted(type, APP_ID);
+        try {
+            getDavClient(user).put(fileContent.getBytes(), "locks/" + type + "_1_" + APP_ID + FILE_LOCKS_EXT);
         } catch (DavException | IOException e) {
             log.error(WEB_DAV_PROCESSING_ERROR);
         }
+    }
 
-        return parentItem.getId();
+    private void releaseLock(User user, String type) {
+        try {
+            getDavClient(user).delete("locks/" + type + "_1_" + APP_ID + FILE_LOCKS_EXT);
+        } catch (DavException | DavClient.DavAccessFailedException | IOException e) {
+            log.warn("Not able to release lock - it does not exists");
+        }
     }
 
     private String createJoplinNode(User user, String saveInParentId) {
@@ -112,12 +155,7 @@ public class WebDAVStorageService implements StorageService {
         String fileName = joplinNode.getId() + FILE_EXT;
         String fileContent = joplinParserUtil.nodeToText(joplinNode);
 
-        try
-        {
-            getDavClient(user).put(fileContent.getBytes(), fileName);
-        } catch (DavException | IOException e) {
-            log.error(WEB_DAV_PROCESSING_ERROR);
-        }
+        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
 
         return joplinNode.getId();
     }
@@ -154,9 +192,9 @@ public class WebDAVStorageService implements StorageService {
 
         try
         {
-            getDavClient(user).put(fileContent.getBytes(), fileName);
-            getDavClient(user).put(Files.readAllBytes(realFile), ".resource/" + attach.getId());
-        } catch (DavException | IOException e) {
+            storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
+            storeJoplinNodeInStorage(user, Files.readAllBytes(realFile), ".resource/" + attach.getId());
+        } catch (IOException e) {
             log.error(WEB_DAV_PROCESSING_ERROR);
         }
         String image = attach.getMime() != null && attach.getMime().split("/")[0].equals("image") ? "!" : "";
@@ -186,12 +224,7 @@ public class WebDAVStorageService implements StorageService {
         String fileName = jNode.getId() + FILE_EXT;
         String fileContent = joplinParserUtil.itemToText(jNode);
 
-        try
-        {
-            getDavClient(user).put(fileContent.getBytes(), fileName);
-        } catch (DavException | IOException e) {
-            log.error(WEB_DAV_PROCESSING_ERROR);
-        }
+        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
         return jNode.getId();
     }
 
@@ -260,6 +293,32 @@ public class WebDAVStorageService implements StorageService {
 
 
         return Collections.emptyList();
+    }
+
+    private boolean hasLock(User user, String lockType) {
+
+        try
+        {
+            DavList resources = getDavClient(user).list("locks/");
+
+            List<DavFile> files = resources.getFiles();
+            for (DavFile item : files) {
+                if (item.getName().endsWith(FILE_LOCKS_EXT)) {
+                    String lockName = item.getName().replace(FILE_LOCKS_EXT, "");
+                    String[] lockDesc = lockName.split("_");
+                    if (lockDesc.length > 2
+                            && (lockType.equals(lockDesc[0]) && !APP_ID.equals(lockDesc[2]))) {
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        } catch (DavException | IOException e) {
+            log.error(WEB_DAV_PROCESSING_ERROR);
+        }
+
+        return false;
     }
 
     private DavClient getDavClient(User user) {
