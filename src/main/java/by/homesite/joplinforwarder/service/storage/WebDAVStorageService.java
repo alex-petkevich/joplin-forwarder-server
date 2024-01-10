@@ -41,6 +41,7 @@ public class WebDAVStorageService implements StorageService {
     public static final String APP_ID = "a5fe93768f344188b162a55319bf753e";
     public static final String WEB_DAV_PROCESSING_ERROR = "WebDAV processing error";
     private static final int RETRY_ATTEMPTS = 10;
+    public static final String LOCKS_FOLDER = "locks/";
 
     private final SettingsService settingsService;
     private final JoplinItemMailMapper mailMapper;
@@ -127,7 +128,7 @@ public class WebDAVStorageService implements StorageService {
 {"type":%s,"clientType":1,"clientId":"%s"}
                 """.formatted(type, APP_ID);
         try {
-            getDavClient(user).put(fileContent.getBytes(), "locks/" + type + "_1_" + APP_ID + FILE_LOCKS_EXT);
+            getDavClient(user).put(fileContent.getBytes(), LOCKS_FOLDER + type + "_1_" + APP_ID + FILE_LOCKS_EXT);
         } catch (DavException | IOException e) {
             log.error(WEB_DAV_PROCESSING_ERROR);
         }
@@ -135,8 +136,10 @@ public class WebDAVStorageService implements StorageService {
 
     private void releaseLock(User user, String type) {
         try {
-            getDavClient(user).delete("locks/" + type + "_1_" + APP_ID + FILE_LOCKS_EXT);
-        } catch (DavException | DavClient.DavAccessFailedException | IOException e) {
+           if (!getDavClient(user).delete(LOCKS_FOLDER + type + "_1_" + APP_ID + FILE_LOCKS_EXT)) {
+               log.warn("Not able to release lock - it does not exists");
+           }
+        } catch (DavClient.DavAccessFailedException | IOException e) {
             log.warn("Not able to release lock - it does not exists");
         }
     }
@@ -299,7 +302,7 @@ public class WebDAVStorageService implements StorageService {
 
         try
         {
-            DavList resources = getDavClient(user).list("locks/");
+            DavList resources = getDavClient(user).list(LOCKS_FOLDER);
 
             List<DavFile> files = resources.getFiles();
             for (DavFile item : files) {

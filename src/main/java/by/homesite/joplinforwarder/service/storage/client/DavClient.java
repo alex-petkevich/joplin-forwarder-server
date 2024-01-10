@@ -265,12 +265,11 @@ public class DavClient {
      * @param fileName the file name relative to the base URL
      * @return file containing the properties
      */
-    public boolean delete(String fileName) throws IOException, DavException {
+    public boolean delete(String fileName) throws IOException {
         String uri = baseUri.toString() + ("/" + fileName).replace("//", "/");
         HttpDelete httpDelete = new HttpDelete(uri);
-        DavList davList = getServerResponse(fileName, this.client.execute(httpDelete, this.context), httpDelete.toString());
-        List<DavFile> webDavFileList = davList.getFiles();
-        return !webDavFileList.isEmpty();
+        int status = this.client.execute(httpDelete, this.context).getStatusLine().getStatusCode();
+        return (status / 100 == 2);
     }
 
     private DavList getServerResponse(String fileName, CloseableHttpResponse execute, String string) throws IOException, DavException {
