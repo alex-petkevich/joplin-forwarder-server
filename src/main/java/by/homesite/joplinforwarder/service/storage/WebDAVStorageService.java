@@ -63,7 +63,7 @@ public class WebDAVStorageService implements StorageService {
             return "";
         }
 
-        return  mail.getRule().getSave_in()
+        return Boolean.TRUE.equals(mail.getRule().getSave_in())
                 ? storeNewItem(user, mail, mail.getRule().getSave_in_parent_id())
                 : storeExistingItem(user, mail, mail.getRule().getSave_in_parent_id());
     }
