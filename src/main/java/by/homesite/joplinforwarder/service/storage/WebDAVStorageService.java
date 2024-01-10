@@ -177,7 +177,7 @@ public class WebDAVStorageService implements StorageService {
         attach.setUpdatedTime(LocalDateTime.now());
         attach.setUserCreatedTime(LocalDateTime.now());
         attach.setUserUpdatedTime(LocalDateTime.now());
-        attach.setType_(JoplinParserUtil.TYPE_FILE);
+        attach.setType_(JoplinParserUtil.TYPE_RESOURCE);
         attach.setFilename(attachName);
         try {
             attach.setSize(Files.size(realFile));

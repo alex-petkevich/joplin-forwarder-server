@@ -18,9 +18,19 @@ public class JoplinParserUtil {
     private final SpringTemplateEngine templateEngine;
     public static final int TYPE_ITEM = 1;
     public static final int TYPE_NODE = 2;
-    public static final int TYPE_DROP_NODE = 13;
-    public static final int TYPE_FILE = 4;
-
+    public static final int TYPE_SETTING = 3;
+    public static final int TYPE_RESOURCE = 4;
+    public static final int TYPE_TAG = 5;
+    public static final int TYPE_NODETAG = 6;
+    public static final int TYPE_SEARCH = 7;
+    public static final int TYPE_ALARM = 8;
+    public static final int TYPE_MASTERKEY = 9;
+    public static final int TYPE_ITEMCHANGE = 10;
+    public static final int TYPE_NOTERESOURCE = 11;
+    public static final int TYPE_RESOURCELOCALSTATE = 12;
+    public static final int TYPE_REVISION = 13;
+    public static final int TYPE_SMARTFILTER = 15;
+    public static final int TYPE_COMMAND = 16;
 
     public JoplinParserUtil(SpringTemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
