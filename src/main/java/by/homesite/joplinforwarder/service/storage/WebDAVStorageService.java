@@ -12,6 +12,7 @@ import by.homesite.joplinforwarder.service.storage.client.dto.DavFileInputStream
 import by.homesite.joplinforwarder.service.storage.client.dto.DavList;
 import by.homesite.joplinforwarder.service.storage.mapper.JoplinItemMailMapper;
 import by.homesite.joplinforwarder.util.JoplinParserUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.apache.jackrabbit.webdav.DavException;
 import org.slf4j.Logger;
@@ -32,73 +33,30 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-@Data
 @Component
-public class WebDAVStorageService implements StorageService {
+public class WebDAVStorageService extends AbstractStorageService {
 
-    public static final String FILE_EXT = ".md";
     public static final String FILE_LOCKS_EXT = ".json";
     public static final String APP_ID = "a5fe93768f344188b162a55319bf753e";
     public static final String WEB_DAV_PROCESSING_ERROR = "WebDAV processing error";
     private static final int RETRY_ATTEMPTS = 10;
     public static final String LOCKS_FOLDER = "locks/";
 
-    private final SettingsService settingsService;
-    private final JoplinItemMailMapper mailMapper;
-    private final JoplinParserUtil joplinParserUtil;
     private final DavClient davClient = new DavClient();
 
     private static final Logger log = LoggerFactory.getLogger(WebDAVStorageService.class);
 
-    public WebDAVStorageService(SettingsService settingsService, JoplinItemMailMapper mailMapper, JoplinParserUtil joplinParserUtil) {
-        this.settingsService = settingsService;
-        this.mailMapper = mailMapper;
-        this.joplinParserUtil = joplinParserUtil;
+    protected WebDAVStorageService(SettingsService settingsService, JoplinItemMailMapper mailMapper, JoplinParserUtil joplinParserUtil, ObjectMapper objectMapper) {
+        super(settingsService, mailMapper, joplinParserUtil, objectMapper);
     }
 
     @Override
     public String storeRecord(User user, Mail mail) {
 
-        if (mail.getRule() == null) {
-            return "";
-        }
-
-        return Boolean.TRUE.equals(mail.getRule().getSave_in())
-                ? storeNewItem(user, mail, mail.getRule().getSave_in_parent_id())
-                : storeExistingItem(user, mail, mail.getRule().getSave_in_parent_id());
+        return super.storeRecord(user, mail);
     }
 
-    private String storeExistingItem(User user, Mail mail, String saveInParentId) {
-        JoplinItem parentItem = null;
-
-        if (!StringUtils.hasText(saveInParentId)) {
-            return "";
-        } else {
-            String rootParentNodeId = getParentNodeId(user, mail, "");
-            
-            List<JoplinItem> items = getDBItemsList(user);
-            Optional<JoplinItem> item = items.stream().filter(it ->
-                    it.getType_() == JoplinParserUtil.TYPE_ITEM && saveInParentId.trim().equalsIgnoreCase(it.getId().trim())
-            ).findFirst();
-            parentItem = item.orElseGet(() -> mailMapper.toDto(mail));
-            if (!rootParentNodeId.isEmpty()) {
-                parentItem.setParentId(rootParentNodeId);
-            }
-            
-        }
-
-        String content = parentItem.getContent() + "\n\n #" + mail.getSubject() + " " + mail.getReceived() + addAttachmentsToContent(user, mail.getAttachments());
-        parentItem.setContent(content);
-
-        String fileName = parentItem.getId() + FILE_EXT;
-        String fileContent = joplinParserUtil.itemToText(parentItem);
-
-        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
-
-        return parentItem.getId();
-    }
-
-    private void storeJoplinNodeInStorage(User user, byte[] fileContent, String fileName) {
+    protected void storeJoplinNodeInStorage(User user, byte[] fileContent, String fileName) {
 
         try
         {
@@ -144,160 +102,6 @@ public class WebDAVStorageService implements StorageService {
         }
     }
 
-    private String createJoplinNode(User user, String saveInParentId) {
-        JoplinNode joplinNode = new JoplinNode();
-
-        joplinNode.setId(generateFileName());
-        joplinNode.setName(saveInParentId);
-        joplinNode.setCreatedTime(LocalDateTime.now());
-        joplinNode.setUpdatedTime(LocalDateTime.now());
-        joplinNode.setUserCreatedTime(LocalDateTime.now());
-        joplinNode.setUserUpdatedTime(LocalDateTime.now());
-        joplinNode.setType_(JoplinParserUtil.TYPE_NODE);
-
-        String fileName = joplinNode.getId() + FILE_EXT;
-        String fileContent = joplinParserUtil.nodeToText(joplinNode);
-
-        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
-
-        return joplinNode.getId();
-    }
-
-    private String storeJoplinAttachment(User user, String attachName, int num) {
-
-        Path realFile = Paths.get(attachName);
-        if (!Files.exists(realFile)) {
-            return "";
-        }
-
-        JoplinAttachment attach = new JoplinAttachment();
-
-        attach.setFileExtension(StringUtils.getFilenameExtension(attachName));
-        String attachFileName = num + "_" + generateFileName() + "." + attach.getFileExtension();
-        attach.setId(generateFileName());
-        attach.setName(attachFileName);
-        attach.setCreatedTime(LocalDateTime.now());
-        attach.setUpdatedTime(LocalDateTime.now());
-        attach.setUserCreatedTime(LocalDateTime.now());
-        attach.setUserUpdatedTime(LocalDateTime.now());
-        attach.setType_(JoplinParserUtil.TYPE_RESOURCE);
-        attach.setFilename(attachName);
-        try {
-            attach.setSize(Files.size(realFile));
-            attach.setMime(Files.probeContentType(realFile));
-        }
-        catch (IOException e) {
-            log.error("Attachment not found");
-        }
-
-        String fileName = attach.getId() + FILE_EXT;
-        String fileContent = joplinParserUtil.attachToText(attach);
-
-        try
-        {
-            storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
-            storeJoplinNodeInStorage(user, Files.readAllBytes(realFile), ".resource/" + attach.getId());
-        } catch (IOException e) {
-            log.error(WEB_DAV_PROCESSING_ERROR);
-        }
-        String image = attach.getMime() != null && attach.getMime().split("/")[0].equals("image") ? "!" : "";
-
-        return "%s[%s](:/%s)".formatted(image, realFile.getFileName(), attach.getId());
-    }
-
-    private String generateFileName() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
-    private String storeNewItem(User user, Mail mail, String parentId) {
-
-        if (mail.getRule() != null && StringUtils.hasText(parentId)) {
-            parentId = getParentNodeId(user, mail, mail.getRule().getSave_in_parent_id());
-        }
-
-        JoplinItem jNode = mailMapper.toDto(mail);
-
-        if (!StringUtils.hasText(jNode.getId())) {
-            return "";
-        }
-
-        jNode.setParentId(parentId);
-        jNode.setContent(jNode.getContent() + addAttachmentsToContent(user, mail.getAttachments()));
-
-        String fileName = jNode.getId() + FILE_EXT;
-        String fileContent = joplinParserUtil.itemToText(jNode);
-
-        storeJoplinNodeInStorage(user, fileContent.getBytes(), fileName);
-        return jNode.getId();
-    }
-
-    private String addAttachmentsToContent(User user, String attachments) {
-        StringBuilder result = new StringBuilder("\n\n");
-        String[] atts = attachments.split("\\|");
-        for (int i=0; i < atts.length; i++) {
-            result.append(storeJoplinAttachment(user, atts[i], i)).append("\n");
-        }
-        return result.toString();
-    }
-
-    private String getParentNodeId(User user, Mail mail, String parentNodeId)
-    {
-        List<JoplinItem> items = getDBItemsList(user);
-
-        String settingsParentId = "";
-        String settingsNode = settingsService.getSettingValue(user.getSettingsList(), "joplinserverparentnode");
-        if (StringUtils.hasText(settingsNode)) {
-            Optional<JoplinItem> settingsParentNode = items.stream().filter(it ->
-                    it.getType_() == JoplinParserUtil.TYPE_NODE && settingsNode.trim().equalsIgnoreCase(it.getContent().trim())
-            ).findFirst();
-            
-            if (settingsParentNode.isEmpty()) {
-                settingsParentId = createJoplinNode(user, settingsParentId);
-            } else {
-                settingsParentId = settingsParentNode.get().getId();
-            }
-        }
-        
-        if (!StringUtils.hasText(parentNodeId)) {
-            return settingsParentId;
-        }
-        
-        Optional<JoplinItem> parentNode = items.stream().filter(it ->
-                it.getType_() == JoplinParserUtil.TYPE_NODE && parentNodeId.trim().equalsIgnoreCase(it.getContent().trim())
-        ).findFirst();
-        if (parentNode.isEmpty()) {
-            return createJoplinNode(user, settingsParentId);
-        } else {
-            return parentNode.get().getId();
-        }
-    }
-
-    private List<JoplinItem> getDBItemsList(User user) {
-
-        List<JoplinItem> result = new ArrayList<>();
-
-        try
-        {
-            DavList resources = getDavClient(user).list("");
-
-            List<DavFile> files = resources.getFiles();
-            for (DavFile item : files) {
-                if (item.getName().endsWith(FILE_EXT)) {
-                    try (DavFileInputStream itemContent = davClient.readFile(item)) {
-                        result.add(joplinParserUtil.textToNode(item.getName(), new String(itemContent.readAllBytes())));
-                    }
-                }
-            }
-
-            return result;
-        } catch (DavException | IOException e) {
-            log.error(WEB_DAV_PROCESSING_ERROR);
-        }
-
-
-        return Collections.emptyList();
-    }
-
     private boolean hasLock(User user, String lockType) {
 
         try
@@ -340,6 +144,32 @@ public class WebDAVStorageService implements StorageService {
         }
 
         return davClient;
+    }
+
+    protected List<JoplinItem> getDBItemsList(User user) {
+
+        List<JoplinItem> result = new ArrayList<>();
+
+        try
+        {
+            DavList resources = getDavClient(user).list("");
+
+            List<DavFile> files = resources.getFiles();
+            for (DavFile item : files) {
+                if (item.getName().endsWith(FILE_EXT)) {
+                    try (DavFileInputStream itemContent = davClient.readFile(item)) {
+                        result.add(joplinParserUtil.textToNode(item.getName(), new String(itemContent.readAllBytes())));
+                    }
+                }
+            }
+
+            return cacheNodesList(user, result);
+        } catch (DavException | IOException e) {
+            log.error(WEB_DAV_PROCESSING_ERROR);
+        }
+
+
+        return cacheNodesList(user, Collections.emptyList());
     }
 
 }

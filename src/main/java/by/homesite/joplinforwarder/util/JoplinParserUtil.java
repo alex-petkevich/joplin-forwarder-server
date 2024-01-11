@@ -58,7 +58,8 @@ public class JoplinParserUtil {
 
         jNode.setName(fileName);
         jNode.setId(properties.get("id"));
-        jNode.setType_(getInt(properties));
+        jNode.setType_(getInt(properties.get("type_")));
+        jNode.setParentId(properties.get("parent_id"));
         jNode.setContent(String.valueOf(content).trim());
         jNode.setUpdatedTime(getTime(properties.get("updated_time")));
         jNode.setCreatedTime(getTime(properties.get("created_time")));
@@ -74,9 +75,9 @@ public class JoplinParserUtil {
         }
     }
 
-    private int getInt(Map<String, String> properties) {
+    private int getInt(String val) {
         try {
-            return Integer.parseInt(properties.get("type_"));
+            return Integer.parseInt(val);
         } catch (NumberFormatException e) {
             return 0;
         }
