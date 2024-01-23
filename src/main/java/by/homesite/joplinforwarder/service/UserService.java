@@ -2,10 +2,17 @@ package by.homesite.joplinforwarder.service;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import by.homesite.joplinforwarder.model.Mail;
+import by.homesite.joplinforwarder.model.specification.MailSpecification;
+import by.homesite.joplinforwarder.model.specification.UserSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -184,5 +191,39 @@ public class UserService
 		UserDetailsImpl printcipal = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		return userRepository.findByUsername(printcipal.getUsername()).orElse(null);
+	}
+
+	public Page<User> getUsers(String name, String username, String email, String role, Boolean active, Pageable pageable)
+	{
+		Specification<User> spec = Specification.where(null);
+
+		if (StringUtils.hasText(username)) {
+			spec = spec.and(UserSpecification.hasUsername(username));
+		}
+		if (StringUtils.hasText(name)) {
+			spec = spec.and(UserSpecification.hasName(name));
+		}
+		if (StringUtils.hasText(email)) {
+			spec = spec.and(UserSpecification.hasEmail(email));
+		}
+		if (StringUtils.hasText(role)) {
+			spec = spec.and(UserSpecification.hasRole(role));
+		}
+		if (active) {
+			spec = spec.and(UserSpecification.hasActive(active));
+		}
+
+		return userRepository.findAll(spec, pageable);
+	}
+
+	public User adminUserActivation(Long userId) {
+		Optional<User> user = userRepository.findById(userId);
+		if (user.isEmpty()) {
+			return null;
+		}
+
+		User saveUser = user.get();
+		saveUser.setActive(saveUser.getActive().equals(0) ? 1 : 0);
+		return userRepository.save(saveUser);
 	}
 }

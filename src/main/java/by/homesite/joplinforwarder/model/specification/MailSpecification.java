@@ -6,6 +6,10 @@ import by.homesite.joplinforwarder.model.Mail;
 
 public class MailSpecification
 {
+	private MailSpecification() {
+		// hide creation
+	}
+
 	public static Specification<Mail> hasSubject(String subject) {
 		return (root, query, criteriaBuilder) ->
 				criteriaBuilder.like(root.get("subject"), '%' + subject + '%');

@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,11 +12,10 @@ import org.springframework.stereotype.Repository;
 import by.homesite.joplinforwarder.model.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User>
 {
 	String USER_USERNAME_CACHE = "userUsername";
 
-	@Cacheable(cacheNames = USER_USERNAME_CACHE)
 	Optional<User> findByUsername(String username);
 	
 	Optional<User> findByActivationKey(String activationKey);
