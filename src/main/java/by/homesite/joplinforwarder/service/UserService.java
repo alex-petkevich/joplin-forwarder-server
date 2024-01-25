@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import by.homesite.joplinforwarder.model.Mail;
-import by.homesite.joplinforwarder.model.specification.MailSpecification;
+import by.homesite.joplinforwarder.controllers.dto.request.UserRequest;
 import by.homesite.joplinforwarder.model.specification.UserSpecification;
+import by.homesite.joplinforwarder.repository.RoleRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
-import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.model.Role;
@@ -39,17 +38,19 @@ public class UserService
 	final AuthenticationManager authenticationManager;
 	final JwtUtils jwtUtils;
 	final UserRepository userRepository;
+	final RoleRepository roleRepository;
 	final PasswordEncoder encoder;
 	private final SendMailService sendMailService;
 
 	private final ApplicationProperties applicationProperties;
 
 	public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository,
-					   PasswordEncoder encoder, SendMailService sendMailService, ApplicationProperties applicationProperties)
+					   RoleRepository roleRepository, PasswordEncoder encoder, SendMailService sendMailService, ApplicationProperties applicationProperties)
 	{
 		this.authenticationManager = authenticationManager;
 		this.jwtUtils = jwtUtils;
 		this.userRepository = userRepository;
+		this.roleRepository = roleRepository;
 		this.encoder = encoder;
 		this.sendMailService = sendMailService;
 		this.applicationProperties = applicationProperties;
@@ -85,7 +86,7 @@ public class UserService
 		return userRepository.existsByEmail(email);
 	}
 
-	public void createUser(SignupRequest signUpRequest, Set<Role> roles)
+	public void createUser(UserRequest signUpRequest, Set<Role> roles)
 	{
 		User user = new User();
 		user.setUsername(signUpRequest.getUsername());
@@ -106,7 +107,7 @@ public class UserService
 		sendMailService.sendActivationEmail(user);
 	}
 
-	public void saveUser(User currentUserData, SignupRequest signUpRequest, Set<Role> roles)
+	public void saveUser(User currentUserData, UserRequest signUpRequest, Set<Role> roles)
 	{
 		currentUserData.setUsername(signUpRequest.getUsername());
 		currentUserData.setEmail(signUpRequest.getEmail());
@@ -209,7 +210,7 @@ public class UserService
 		if (StringUtils.hasText(role)) {
 			spec = spec.and(UserSpecification.hasRole(role));
 		}
-		if (active) {
+		if (Boolean.TRUE.equals(active)) {
 			spec = spec.and(UserSpecification.hasActive(active));
 		}
 
@@ -226,4 +227,15 @@ public class UserService
 		saveUser.setActive(saveUser.getActive().equals(0) ? 1 : 0);
 		return userRepository.save(saveUser);
 	}
+
+	public User getUser(Long userId)
+	{
+		return userRepository.findById(userId).orElse(null);
+	}
+
+	public List<Role> getRoles()
+	{
+		return roleRepository.findAll();
+	}
+
 }

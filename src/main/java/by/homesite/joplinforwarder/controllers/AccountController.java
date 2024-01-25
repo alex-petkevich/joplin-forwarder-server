@@ -3,9 +3,9 @@ package by.homesite.joplinforwarder.controllers;
 import java.util.HashSet;
 import java.util.Set;
 
+import by.homesite.joplinforwarder.controllers.dto.request.UserRequest;
 import jakarta.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import by.homesite.joplinforwarder.controllers.dto.request.ActivateRequest;
 import by.homesite.joplinforwarder.controllers.dto.request.LoginRequest;
-import by.homesite.joplinforwarder.controllers.dto.request.SignupRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.JwtResponse;
 import by.homesite.joplinforwarder.controllers.dto.response.MessageResponse;
 import by.homesite.joplinforwarder.model.ERole;
@@ -53,7 +52,7 @@ public class AccountController
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest)
+	public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequest signUpRequest)
 	{
 		if (userService.isUsernameExists(signUpRequest.getUsername()))
 		{
@@ -69,7 +68,8 @@ public class AccountController
 		}
 		
 		// Create new user's account
-		Set<Role> roles = getUserRoles(signUpRequest.getRole());
+		Set<Role> roles = new HashSet<>();
+		roles.add(roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException(translate.get("account.register-user.role-not-found"))));
 
 		userService.createUser(signUpRequest, roles);
 		
@@ -108,33 +108,4 @@ public class AccountController
 		return ResponseEntity.ok(response);
 	}
 
-	private Set<Role> getUserRoles(Set<String> roleList)
-	{
-		Set<Role> roles = new HashSet<>();
-		if (roleList == null)
-		{
-			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException(translate.get("account.register-user.role-not-found")));
-			roles.add(userRole);
-		}
-		else
-		{
-			roleList.forEach(role -> {
-				switch (role)
-				{
-					case "admin":
-						Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-								.orElseThrow(() -> new RuntimeException(translate.get("account.register-user.role-not-found")));
-						roles.add(adminRole);
-						break;
-					default:
-						Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-								.orElseThrow(() -> new RuntimeException(translate.get("account.register-user.role-not-found")));
-						roles.add(userRole);
-				}
-			});
-		}
-		
-		return roles;
-	}
 }
