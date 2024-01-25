@@ -4,6 +4,9 @@ logging:
     by:
       homesite:
         joplinforwarder: INFO
+    org:
+      springframework:
+        security: DEBUG
 spring:
   devtools:
     restart:
