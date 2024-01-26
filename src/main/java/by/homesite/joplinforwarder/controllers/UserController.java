@@ -3,7 +3,6 @@ package by.homesite.joplinforwarder.controllers;
 import by.homesite.joplinforwarder.controllers.dto.request.UserRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.RoleResponse;
 import by.homesite.joplinforwarder.controllers.mapper.RoleMapper;
-import by.homesite.joplinforwarder.model.Role;
 import by.homesite.joplinforwarder.util.ControllerUtil;
 import jakarta.validation.Valid;
 
@@ -12,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,9 +28,8 @@ import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.TranslateService;
 import by.homesite.joplinforwarder.service.UserService;
 
-import java.util.HashSet;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/user")
@@ -145,10 +144,16 @@ public class UserController {
 		return ResponseEntity.ok(roles);
 	}
 
-	@PostMapping("/admin/{id}")
+	@PostMapping("/admin/")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<MessageResponse> saveUserAdmin(@PathVariable(required = true)  Long id, @Valid @RequestBody UserRequest userRequest) {
-		User userData = userService.getUser(id);
+	public ResponseEntity<MessageResponse> saveUserAdmin(@Valid @RequestBody UserRequest userRequest) {
+		User userData;
+		if (userRequest.getId() != null) {
+			userData = userService.getUser(userRequest.getId());
+		} else {
+			userData = new User();
+			userData.setCreatedAt(OffsetDateTime.now());
+		}
 
 		if (!userRequest.getEmail().equals(userData.getEmail()) && userService.isEmailExists(userRequest.getEmail()))
 		{
@@ -166,5 +171,13 @@ public class UserController {
 		userService.saveUser(userData, userRequest, userRequest.getRoles());
 
 		return ResponseEntity.ok(new MessageResponse(translate.get("user.saved-successfully")));
+	}
+
+	@DeleteMapping("/admin/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<MessageResponse> deleteUserAdmin(@PathVariable Long id) {
+		this.userService.deleteUser(id);
+
+		return ResponseEntity.ok(new MessageResponse(translate.get("user.deleted-successfully")));
 	}
 }

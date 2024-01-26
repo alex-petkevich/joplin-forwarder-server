@@ -14,6 +14,8 @@ import lombok.Setter;
 @Setter
 public class UserRequest
 {
+	private Long id;
+
 	@NotBlank
 	@Size(min = 3, max = 20)
 	private String username;
@@ -34,5 +36,5 @@ public class UserRequest
 
 	private Set<Role> roles;
 
-	private Integer active;
+	private Boolean active;
 }

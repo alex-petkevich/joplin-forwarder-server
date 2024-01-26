@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	
 	Optional<User> findByActivationKey(String activationKey);
 	
-	@Query(value = "SELECT u FROM User u WHERE (u.username = :key OR u.email = :key) AND u.lastModifiedAt > u.createdAt")
+	@Query(value = "SELECT u FROM User u WHERE (u.username = :key OR u.email = :key)")
 	Optional<User> findForResetPassword(@Param("key") String key);
 	
 	Boolean existsByUsername(String username);

@@ -114,6 +114,7 @@ public class UserService
 		currentUserData.setFirstname(signUpRequest.getFirstname());
 		currentUserData.setLastname(signUpRequest.getLastname());
 		currentUserData.setLastModifiedAt(OffsetDateTime.now());
+		currentUserData.setActive(Boolean.TRUE.equals(signUpRequest.getActive()) ? 1 : 0);
 		if (StringUtils.hasText(signUpRequest.getLang()))
 		{
 			currentUserData.setLang(signUpRequest.getLang());
@@ -138,6 +139,9 @@ public class UserService
 			user.setActive(1);
 			user.setLastModifiedAt(OffsetDateTime.now());
 			userRepository.save(user);
+
+			this.forgotPasswordSend(user.getEmail());
+
 			return new JwtResponse(null, user.getId(), user.getUsername(), user.getEmail(), user.getLang(), null);
 		}
 		
@@ -224,7 +228,7 @@ public class UserService
 		}
 
 		User saveUser = user.get();
-		saveUser.setActive(saveUser.getActive().equals(0) ? 1 : 0);
+		saveUser.setActive(saveUser.getActive() != null && saveUser.getActive() == 0 ? 1 : 0);
 		return userRepository.save(saveUser);
 	}
 
@@ -238,4 +242,9 @@ public class UserService
 		return roleRepository.findAll();
 	}
 
+	public void deleteUser(Long id) {
+		if (id != null) {
+			userRepository.deleteById(id);
+		}
+	}
 }

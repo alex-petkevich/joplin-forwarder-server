@@ -77,7 +77,7 @@ public class AccountController
 	}
 
 	@PostMapping("/activate")
-	public ResponseEntity<?> activateUser(@Valid @RequestBody ActivateRequest activateRequest)
+	public ResponseEntity<JwtResponse> activateUser(@Valid @RequestBody ActivateRequest activateRequest)
 	{
 		JwtResponse response = userService.activate(activateRequest.getKey());
 
@@ -85,7 +85,7 @@ public class AccountController
 	}
 
 	@GetMapping("/forgot-password/{key}")
-	public ResponseEntity<?> forgotPassword(@Valid @PathVariable String key)
+	public ResponseEntity<MessageResponse> forgotPassword(@Valid @PathVariable String key)
 	{
 		MessageResponse response = userService.forgotPasswordSend(key);
 
