@@ -60,6 +60,7 @@ public class WebSecurityConfig
 				.exceptionHandling(handeling -> handeling.authenticationEntryPoint(unauthorizedHandler))
 				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/api/management/**").hasRole("ADMIN")
 						.requestMatchers("/api/account/**").permitAll()
 						.requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
 						.requestMatchers("/api/info/**").permitAll()

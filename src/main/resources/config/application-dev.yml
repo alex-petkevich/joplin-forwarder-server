@@ -48,6 +48,11 @@ spring:
     cache: false
 server:
   port: 8585
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origins: "http://localhost:4200"
 
 # App Properties
 application:
@@ -63,7 +68,7 @@ application:
     upload-dir: uploads
     attach-dir: attachments
   cors:
-    allowed-origins: 'http://localhost:4200'
+    allowed-origins: 'http://localhost:8585,http://localhost:4200'
   cache:
     max-entries: 100
     time-to-live-seconds: 3600

@@ -27,7 +27,7 @@
 		<mariadb-java-client.version>3.3.0</mariadb-java-client.version>
 		<mariadb.version>1.19.3</mariadb.version>
 		<mockito-junit.version>5.5.0</mockito-junit.version>
-		<springboot.version>3.2.0</springboot.version>
+		<springboot.version>3.2.2</springboot.version>
 	</properties>
 	<dependencies>
 		<dependency>
