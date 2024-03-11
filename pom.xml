@@ -9,9 +9,9 @@
 		<relativePath/>
 	</parent>
 	<groupId>by.homesite</groupId>
-	<artifactId>joplinforwarder</artifactId>
+	<artifactId>server</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>joplinforwarder</name>
+	<name>joplinforwarder-server</name>
 	<description>Joplin Email Forwarder Tool</description>
 	<properties>
 		<ehcache.version>3.10.8</ehcache.version>
@@ -27,7 +27,7 @@
 		<mariadb-java-client.version>3.3.0</mariadb-java-client.version>
 		<mariadb.version>1.19.3</mariadb.version>
 		<mockito-junit.version>5.5.0</mockito-junit.version>
-		<springboot.version>3.2.2</springboot.version>
+		<springboot.version>3.2.3</springboot.version>
 	</properties>
 	<dependencies>
 		<dependency>
