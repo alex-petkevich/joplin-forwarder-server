@@ -4,6 +4,7 @@ import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
+import by.homesite.joplinforwarder.model.RuleAction;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.RulesService;
@@ -149,34 +150,36 @@ public class IMAPMailerService implements MailerService
     }
 
     private void performFinalSteps(User user, Mail mail, IMAPMessage mess, Store store) {
-        switch (mail.getRule().getFinal_action()) {
-            case "MARK_READ" -> {
-                try {
-                    mess.setFlag(Flags.Flag.SEEN, true);
-                } catch (MessagingException e) {
-                    log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                }
-            }
-            case "DELETE" -> {
-                try {
-                    mess.setFlag(Flags.Flag.DELETED, true);
-                } catch (MessagingException e) {
-                    log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                }
-            }
-            case "MOVE_TO_FOLDER" -> {
-                if (StringUtils.hasText(mail.getRule().getFinal_action_target())) {
+        for (RuleAction ruleAction : mail.getRule().getRuleActions()) {
+            switch (ruleAction.getAction()) {
+                case "MARK_READ" -> {
                     try {
-                        IMAPFolder object = (IMAPFolder) store.getFolder(mail.getRule().getFinal_action_target());
-                        Message[] msgs = new Message[1];
-                        msgs[0] = mess;
-                        object.moveMessages(msgs, object);
+                        mess.setFlag(Flags.Flag.SEEN, true);
                     } catch (MessagingException e) {
-                        log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                        log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
                     }
                 }
+                case "DELETE" -> {
+                    try {
+                        mess.setFlag(Flags.Flag.DELETED, true);
+                    } catch (MessagingException e) {
+                        log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                    }
+                }
+                case "MOVE_TO_FOLDER" -> {
+                    if (StringUtils.hasText(ruleAction.getAction_target())) {
+                        try {
+                            IMAPFolder object = (IMAPFolder) store.getFolder(ruleAction.getAction_target());
+                            Message[] msgs = new Message[1];
+                            msgs[0] = mess;
+                            object.moveMessages(msgs, object);
+                        } catch (MessagingException e) {
+                            log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                        }
+                    }
+                }
+                default -> log.error("No postprocessor rule defined");
             }
-            default -> log.error("No postprocessor rule defined");
         }
 
         mail.setConverted(1);

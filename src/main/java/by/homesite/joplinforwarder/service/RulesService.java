@@ -3,9 +3,13 @@ package by.homesite.joplinforwarder.service;
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.Rule;
+import by.homesite.joplinforwarder.model.RuleAction;
+import by.homesite.joplinforwarder.model.RuleCondition;
 import by.homesite.joplinforwarder.model.User;
+import by.homesite.joplinforwarder.repository.RuleConditionsRepository;
+import by.homesite.joplinforwarder.repository.RulesActionsRepository;
 import by.homesite.joplinforwarder.repository.RulesRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,12 +20,18 @@ import java.util.regex.Pattern;
 public class RulesService
 {
 	private final RulesRepository rulesRepository;
+    
+	private final RulesActionsRepository ruleActionsRepository;
+    
+	private final RuleConditionsRepository ruleConditionsRepository;
 
 	private final ApplicationProperties applicationProperties;
 
-	public RulesService(RulesRepository rulesRepository, ApplicationProperties applicationProperties) {
+	public RulesService(RulesRepository rulesRepository, RulesActionsRepository ruleActionsRepository, RuleConditionsRepository ruleConditionsRepository, ApplicationProperties applicationProperties) {
 		this.rulesRepository = rulesRepository;
-		this.applicationProperties = applicationProperties;
+        this.ruleActionsRepository = ruleActionsRepository;
+        this.ruleConditionsRepository = ruleConditionsRepository;
+        this.applicationProperties = applicationProperties;
 	}
 
 	public Rule saveRule(User user, Rule rule)
@@ -50,6 +60,9 @@ public class RulesService
 		Rule rule = rulesRepository.getByIdAndUserId(id, userId);
 		if (rule != null) {
 			rulesRepository.delete(rule);
+            
+            ruleActionsRepository.deleteByRuleId(id);
+            ruleConditionsRepository.deleteByRuleId(id);
 		}
 	}
 
@@ -61,18 +74,24 @@ public class RulesService
 	{
 		List<Rule> rules = getUserActiveRules(user.getId());
 
+        Boolean meets = null;
 		for (Rule rule : rules) {
-			boolean meetsRule = switch (rule.getType())
-					{
-						case "FROM" -> compareField(rule, mail.getSender());
-						case "TO" -> compareField(rule, mail.getRecipient());
-						case "SUBJECT" -> compareField(rule, mail.getSubject());
-						case "BODY" -> compareField(rule, mail.getText());
-						case "ATTACH" -> compareField(rule, mail.getAttachments());
-						default -> false;
-					};
+            for (RuleCondition ruleCondition: rule.getRuleConditions()) {
+                boolean meetsRule = switch (ruleCondition.getType()) {
+                    case "FROM" -> compareField(ruleCondition, mail.getSender());
+                    case "TO" -> compareField(ruleCondition, mail.getRecipient());
+                    case "SUBJECT" -> compareField(ruleCondition, mail.getSubject());
+                    case "BODY" -> compareField(ruleCondition, mail.getText());
+                    case "ATTACH" -> compareField(ruleCondition, mail.getAttachments());
+                    default -> false;
+                };
+                if (meets == null) {
+                    meets = meetsRule;
+                }
+                meets = ruleCondition.getCondition() == 1 ? meets & meetsRule : meets | meetsRule;
+            }
 
-			if (meetsRule) {
+			if (Boolean.TRUE.equals(meets)) {
 				return rule;
 			}
 		}
@@ -80,7 +99,7 @@ public class RulesService
 		return null;
 	}
 
-	private boolean compareField(Rule rule, String subject) {
+	private boolean compareField(RuleCondition rule, String subject) {
 		boolean meets = false;
 		subject = subject.trim();
 
@@ -95,11 +114,38 @@ public class RulesService
 		return meets;
 	}
 
-	private static boolean prepareSearchStatement(Rule rule, String subject) {
+	private static boolean prepareSearchStatement(RuleCondition rule, String subject) {
 		String prepared = rule.getComparison_text().replace("*", "(.+)");
 		prepared = prepared.replace("%", ".{1}");
 		Pattern p = Pattern.compile(prepared, Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(subject);
 		return m.find();
 	}
+
+    public RuleAction saveAction(RuleAction ruleAction) {
+        return ruleActionsRepository.save(ruleAction);
+    }
+    
+    public RuleCondition saveCondition(RuleCondition ruleCondition) {
+        return ruleConditionsRepository.save(ruleCondition);
+    }
+
+    public void deleteRuleAction(Integer id) {
+        ruleActionsRepository.deleteById(Long.valueOf(id));
+    }
+    
+    public void deleteRuleCondition(Integer id) {
+        ruleConditionsRepository.deleteById(Long.valueOf(id));
+    }
+
+    public RuleAction getRuleAction(Integer id)
+    {
+        return ruleActionsRepository.getReferenceById(Long.valueOf(id));
+    }
+
+    public RuleCondition getRuleCondition(Integer id)
+    {
+        return ruleConditionsRepository.getReferenceById(Long.valueOf(id));
+    }
+
 }

@@ -12,6 +12,8 @@ public interface RuleMapper extends BasicMapper<Rule, RuleResponse>
 {
 
     @Mapping(source = "user.id", target = "user_id")
+    @Mapping(source = "rule.ruleConditions", target = "rule_conditions")
+    @Mapping(source = "rule.ruleActions", target = "rule_actions")
     RuleResponse toEntity(Rule rule);
 
 }

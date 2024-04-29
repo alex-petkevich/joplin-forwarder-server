@@ -64,7 +64,7 @@ application:
     from: support-joplin@homesite.by
     baseUrl: 'http://localhost:4200/'
   upload:
-    local-path: 'C:/work/java/joplin-forwarder/'
+    local-path: 'C:/work/java/joplin/'
     upload-dir: uploads
     attach-dir: attachments
   cors:

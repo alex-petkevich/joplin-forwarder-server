@@ -1,11 +1,15 @@
 package by.homesite.joplinforwarder.controllers.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
+import by.homesite.joplinforwarder.model.RuleAction;
+import by.homesite.joplinforwarder.model.RuleCondition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,10 +21,6 @@ public class RuleResponse {
 
     private String name;
 
-    private String type;
-
-    private String comparison_method;
-
     private Boolean save_in;
 
     private Boolean active;
@@ -31,13 +31,11 @@ public class RuleResponse {
 
     private String save_in_parent_id;
 
-    private String final_action;
-
     private Integer processed;
-
-    private String comparison_text;
-
-    private String final_action_target;
+    
+    private List<RuleCondition> rule_conditions;
+    
+    private List<RuleAction> rule_actions;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime created_at;

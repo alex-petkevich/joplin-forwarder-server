@@ -1,5 +1,6 @@
 package by.homesite.joplinforwarder.model;
 
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "rules")
@@ -40,23 +42,13 @@ public class Rule
 	@Column(length = 50)
 	private String name;
 
-	private String type;
-
-	private String comparison_method;
-
 	private Boolean save_in = Boolean.TRUE;
 
 	private Integer priority;
 
 	private String save_in_parent_id;
 
-	private String final_action;
-
 	private Integer processed;
-
-	private String comparison_text;
-
-	private String final_action_target;
 
 	private OffsetDateTime created_at;
 
@@ -74,4 +66,9 @@ public class Rule
 	@JoinColumn(name = "user_id")
 	private User user;
 
+    @OneToMany(mappedBy = "rule", fetch = FetchType.LAZY)
+    private List<RuleCondition> ruleConditions;
+
+    @OneToMany(mappedBy = "rule", fetch = FetchType.LAZY)
+    private List<RuleAction> ruleActions;
 }
