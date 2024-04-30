@@ -143,7 +143,7 @@ public class RulesController
 
         rule.getRuleConditions().add(rulesService.saveCondition(ruleCondition));
 
-        return ResponseEntity.ok(rule.getRuleActions());
+        return ResponseEntity.ok(rule.getRuleConditions());
     }
 
     @DeleteMapping("/actions/{id}")
@@ -161,7 +161,7 @@ public class RulesController
         
         rulesService.deleteRuleAction(id);
         
-        return ResponseEntity.ok(rulesService.getRule(id, user.getId()).getRuleActions());
+        return ResponseEntity.ok(rulesService.getRule(ruleAction.getRule().getId(), user.getId()).getRuleActions());
     }
 
     @DeleteMapping("/conditions/{id}")
@@ -169,9 +169,9 @@ public class RulesController
     public ResponseEntity<?> deleteRuleCondition(@Valid @PathVariable Integer id)
     {
         User user = userService.getCurrentUser();
-        Rule rule = rulesService.getRule(id, user.getId());
+        RuleCondition ruleCondition = rulesService.getRuleCondition(id);
 
-        if (rule == null || rule.getId() == null) {
+        if (ruleCondition == null  || ! user.getId().equals(ruleCondition.getRule().getUser().getId())) {
             return ResponseEntity
                   .badRequest()
                   .body(new MessageResponse(translate.get("rules.conditions.missing-parameters")));
@@ -179,8 +179,6 @@ public class RulesController
 
         rulesService.deleteRuleCondition(id);
 
-        rule = rulesService.getRule(id, user.getId());
-
-        return ResponseEntity.ok(rule.getRuleActions());
+        return ResponseEntity.ok(rulesService.getRule(ruleCondition.getRule().getId(), user.getId()).getRuleConditions());
     }
 }

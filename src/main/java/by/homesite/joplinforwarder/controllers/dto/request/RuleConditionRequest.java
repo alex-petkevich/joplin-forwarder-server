@@ -19,7 +19,7 @@ public class RuleConditionRequest
 
 	private String comparison_method;
 
-	private Integer condition;
+	private Integer cond;
 
 	private String comparison_text;
 

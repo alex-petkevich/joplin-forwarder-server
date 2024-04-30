@@ -88,7 +88,7 @@ public class RulesService
                 if (meets == null) {
                     meets = meetsRule;
                 }
-                meets = ruleCondition.getCondition() == 1 ? meets & meetsRule : meets | meetsRule;
+                meets = ruleCondition.getCond() == 1 ? meets & meetsRule : meets | meetsRule;
             }
 
 			if (Boolean.TRUE.equals(meets)) {

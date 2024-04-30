@@ -16,12 +16,7 @@ public class RuleRequest
 	@NotBlank
 	@Size(min = 1, max = 50)
 	private String name;
-
-	@NotBlank
-	private String type;
-
-	private String comparison_method;
-
+    
 	private Boolean save_in;
 
 	private String save_in_parent_id;
@@ -33,13 +28,7 @@ public class RuleRequest
 	private Boolean stop_process_rules;
 
 	private Integer priority;
-
-	private String final_action;
-
-	private String comparison_text;
-
-	private String final_action_target;
-
+    
 	private OffsetDateTime created_at;
 
 	private OffsetDateTime last_modified_at;

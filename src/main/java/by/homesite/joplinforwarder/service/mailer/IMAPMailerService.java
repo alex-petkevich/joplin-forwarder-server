@@ -35,9 +35,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 @Service
@@ -126,9 +128,14 @@ public class IMAPMailerService implements MailerService
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
                     mailRepository.save(mail);
 
-                    mail.setProcessedId(storageService.storeRecord(user, mail));
+                    preprocessFinalSteps(user, mail);
 
-                    performFinalSteps(user, mail, (IMAPMessage) mess, store);
+                    String processId = storageService.storeRecord(user, mail);
+                    
+                    mail = mailRepository.getReferenceById(Long.valueOf(mail.getId()));
+                    
+                    mail.setProcessedId(processId);
+                    processFinalSteps(user, mail, (IMAPMessage) mess, store);
                 }
                 else
                 {
@@ -149,36 +156,64 @@ public class IMAPMailerService implements MailerService
         }
     }
 
-    private void performFinalSteps(User user, Mail mail, IMAPMessage mess, Store store) {
+    private void preprocessFinalSteps(User user, Mail mail) {
+        Optional<RuleAction> moveToFolderAction =  mail.getRule().getRuleActions().stream().filter(it -> "MOVE_TO_FOLDER".equals(it.getAction())).findFirst();
+        String moveActionTarget = moveToFolderAction.isPresent() ? moveToFolderAction.get().getAction_target() : "";
         for (RuleAction ruleAction : mail.getRule().getRuleActions()) {
             switch (ruleAction.getAction()) {
-                case "MARK_READ" -> {
+                case "RENAME" -> {
+                    mail.setSubject(replaceTemplateVariables(mail.getSubject(), ruleAction.getAction_target(), moveActionTarget));
+                }
+                default -> log.info("No preprocessor rule defined");
+            }
+        }
+    }
+
+    private String replaceTemplateVariables(String subject, String processTemplate, String moveActionTarget) {
+        
+        String result = processTemplate;
+        result = result.replace("[#SUBJECT#]", subject);
+        if (result.contains("[#REMOVE_KEYWORD#]")) {
+            result = result.replace("[#REMOVE_KEYWORD#]", subject);
+            result = result.replace(moveActionTarget, "");
+        }
+        result = result.replace("[#DATE_DAY#]", String.valueOf(LocalDate.now().getDayOfMonth()));
+        result = result.replace("[#DATE_MONTH#]", String.valueOf(LocalDate.now().getMonth()));
+        result = result.replace("[#DATE_YEAR#]", String.valueOf(LocalDate.now().getYear()));
+        
+        return result;
+    }
+
+    private void processFinalSteps(User user, Mail mail, IMAPMessage mess, Store store) {
+        for (RuleAction ruleAction : mail.getRule().getRuleActions()) {
+            switch (ruleAction.getAction()) {
+            case "MARK_READ" -> {
+                try {
+                    mess.setFlag(Flags.Flag.SEEN, true);
+                } catch (MessagingException e) {
+                    log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                }
+            }
+            case "DELETE" -> {
+                try {
+                    mess.setFlag(Flags.Flag.DELETED, true);
+                } catch (MessagingException e) {
+                    log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                }
+            }
+            case "MOVE_TO_FOLDER" -> {
+                if (StringUtils.hasText(ruleAction.getAction_target())) {
                     try {
-                        mess.setFlag(Flags.Flag.SEEN, true);
+                        IMAPFolder object = (IMAPFolder) store.getFolder(ruleAction.getAction_target());
+                        Message[] msgs = new Message[1];
+                        msgs[0] = mess;
+                        object.moveMessages(msgs, object);
                     } catch (MessagingException e) {
-                        log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                        log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
                     }
                 }
-                case "DELETE" -> {
-                    try {
-                        mess.setFlag(Flags.Flag.DELETED, true);
-                    } catch (MessagingException e) {
-                        log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                    }
-                }
-                case "MOVE_TO_FOLDER" -> {
-                    if (StringUtils.hasText(ruleAction.getAction_target())) {
-                        try {
-                            IMAPFolder object = (IMAPFolder) store.getFolder(ruleAction.getAction_target());
-                            Message[] msgs = new Message[1];
-                            msgs[0] = mess;
-                            object.moveMessages(msgs, object);
-                        } catch (MessagingException e) {
-                            log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                        }
-                    }
-                }
-                default -> log.error("No postprocessor rule defined");
+            }
+            default -> log.error("No postprocessor rule defined");
             }
         }
 

@@ -35,7 +35,7 @@ public class RuleCondition
 
     private String comparison_text;
 
-    private Integer condition;
+    private Integer cond;
 
     private OffsetDateTime created_at;
 
