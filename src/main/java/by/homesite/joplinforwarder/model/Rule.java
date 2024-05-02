@@ -66,9 +66,9 @@ public class Rule
 	@JoinColumn(name = "user_id")
 	private User user;
 
-    @OneToMany(mappedBy = "rule", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "rule", fetch = FetchType.EAGER)
     private List<RuleCondition> ruleConditions;
 
-    @OneToMany(mappedBy = "rule", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "rule", fetch = FetchType.EAGER)
     private List<RuleAction> ruleActions;
 }
