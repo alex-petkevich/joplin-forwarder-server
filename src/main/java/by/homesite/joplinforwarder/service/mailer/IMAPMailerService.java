@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 @Service
 public class IMAPMailerService implements MailerService
@@ -179,12 +180,12 @@ public class IMAPMailerService implements MailerService
         String result = processTemplate.replace("[#SUBJECT#]", subject);
         if (result.contains("[#REMOVE_KEYWORD#]")) {
             result = result.replace("[#REMOVE_KEYWORD#]", "");
-            result = result.replace(moveActionTarget, "");
+            result = result.replaceAll("(?i)" + Pattern.quote(moveActionTarget), "");
         }
-        result = result.replace("[#DATE_DAY#]", String.valueOf(LocalDate.now().getDayOfMonth()));
-        result = result.replace("[#DATE_MONTH#]", String.valueOf(LocalDate.now().getMonth().getValue()));
+        result = result.replace("[#DATE_DAY#]", String.format("%02d", (LocalDate.now().getDayOfMonth())));
+        result = result.replace("[#DATE_MONTH#]", String.format("%02d", (LocalDate.now().getMonth().getValue())));
         result = result.replace("[#DATE_YEAR#]", String.valueOf(LocalDate.now().getYear()));
-        result = result.replace("[#DATE_PREV_MONTH#]", String.valueOf(previousMonth.getMonthValue()));
+        result = result.replace("[#DATE_PREV_MONTH#]", String.format("%02d", (previousMonth.getMonthValue())));
         result = result.replace("[#DATE_PREV_YEAR#]", String.valueOf(previousMonth.getYear()));
         
         return result;
