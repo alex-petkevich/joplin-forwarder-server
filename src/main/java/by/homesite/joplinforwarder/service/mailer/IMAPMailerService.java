@@ -36,7 +36,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.OffsetDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -170,16 +172,20 @@ public class IMAPMailerService implements MailerService
     }
 
     private String replaceTemplateVariables(String subject, String processTemplate, String moveActionTarget) {
-        
-        String result = processTemplate;
-        result = result.replace("[#SUBJECT#]", subject);
+        YearMonth previousMonth = YearMonth
+              .now()
+              .minusMonths(1);
+
+        String result = processTemplate.replace("[#SUBJECT#]", subject);
         if (result.contains("[#REMOVE_KEYWORD#]")) {
-            result = result.replace("[#REMOVE_KEYWORD#]", subject);
+            result = result.replace("[#REMOVE_KEYWORD#]", "");
             result = result.replace(moveActionTarget, "");
         }
         result = result.replace("[#DATE_DAY#]", String.valueOf(LocalDate.now().getDayOfMonth()));
-        result = result.replace("[#DATE_MONTH#]", String.valueOf(LocalDate.now().getMonth()));
+        result = result.replace("[#DATE_MONTH#]", String.valueOf(LocalDate.now().getMonth().getValue()));
         result = result.replace("[#DATE_YEAR#]", String.valueOf(LocalDate.now().getYear()));
+        result = result.replace("[#DATE_PREV_MONTH#]", String.valueOf(previousMonth.getMonthValue()));
+        result = result.replace("[#DATE_PREV_YEAR#]", String.valueOf(previousMonth.getYear()));
         
         return result;
     }
