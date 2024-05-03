@@ -55,7 +55,7 @@ public class Mail
 
 	private OffsetDateTime received;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_id")
 	private User user;
 
