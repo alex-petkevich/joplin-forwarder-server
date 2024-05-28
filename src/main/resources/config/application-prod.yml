@@ -48,7 +48,7 @@ management:
   endpoints:
     web:
       cors:
-        allowed-origins: "https://fw.homesite.by"
+        allowed-origins: "https://fw.homesite.by,http://fw.abcdef.at/"
 
 # App Properties
 application:
@@ -62,7 +62,7 @@ application:
     local-path: '/mnt/vol1/www/joplin/data/'
     upload-dir: uploads
   cors:
-    allowed-origins: 'https://fw.homesite.by/'
+    allowed-origins: 'https://fw.homesite.by/,http://fw.abcdef.at/'
   cache:
     max-entries: 1000
     time-to-live-seconds: 3600
