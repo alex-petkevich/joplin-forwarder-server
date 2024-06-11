@@ -2,7 +2,7 @@ package by.homesite.joplinforwarder.scheduler;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.config.Constants;
-import by.homesite.joplinforwarder.service.mailer.MailerService;
+import by.homesite.joplinforwarder.service.parser.ParserService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 public class CrawlerScheduled {
     private static final Logger log = LoggerFactory.getLogger(CrawlerScheduled.class);
     
-    private final MailerService mailerService;
+    private final ParserService parserService;
     private final ApplicationProperties applicationProperties;
 
-    public CrawlerScheduled(MailerService mailerService, ApplicationProperties applicationProperties) {
-        this.mailerService = mailerService;
+    public CrawlerScheduled(ParserService parserService, ApplicationProperties applicationProperties) {
+        this.parserService = parserService;
         this.applicationProperties = applicationProperties;
     }
 
@@ -28,7 +28,7 @@ public class CrawlerScheduled {
             return;
 
         log.info("Run crawler to check the new mail");
-        mailerService.getMail();
+        parserService.parseMail();
     }
 
     @Scheduled(fixedRate = Constants.PURGE_MAILS_PERIOD)
@@ -37,6 +37,6 @@ public class CrawlerScheduled {
             return;
 
         log.info("Clean the mail table of old items");
-        mailerService.deleteOldItems(Constants.PURGE_MAILS_PERIOD);
+        parserService.deleteOldItems(Constants.PURGE_MAILS_PERIOD);
     }
 }

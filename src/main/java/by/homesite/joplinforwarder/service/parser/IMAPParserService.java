@@ -1,4 +1,4 @@
-package by.homesite.joplinforwarder.service.mailer;
+package by.homesite.joplinforwarder.service.parser;
 
 import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
 
@@ -9,7 +9,7 @@ import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.repository.MailRepository;
 import by.homesite.joplinforwarder.service.RulesService;
 import by.homesite.joplinforwarder.service.SettingsService;
-import by.homesite.joplinforwarder.service.mailer.mapper.IMAPMailMessageMapper;
+import by.homesite.joplinforwarder.service.parser.mapper.IMAPMailMessageMapper;
 import by.homesite.joplinforwarder.service.storage.StorageService;
 import by.homesite.joplinforwarder.util.MailUtil;
 import io.jsonwebtoken.lang.Collections;
@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import jakarta.mail.Flags;
@@ -36,7 +37,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 @Service
-public class IMAPMailerService implements MailerService
+public class IMAPParserService implements ParserService
 {
     private final SettingsService settingsService;
     private final RulesService rulesService;
@@ -55,9 +55,9 @@ public class IMAPMailerService implements MailerService
     private final ApplicationProperties applicationProperties;
     private final StorageService storageService;
 
-    private static final Logger log = LoggerFactory.getLogger(IMAPMailerService.class);
+    private static final Logger log = LoggerFactory.getLogger(IMAPParserService.class);
 
-    public IMAPMailerService(SettingsService settingsService,
+    public IMAPParserService(SettingsService settingsService,
                              RulesService rulesService,
                              MailRepository mailRepository,
                              IMAPMailMessageMapper imapMailMessageMapper,
@@ -72,7 +72,8 @@ public class IMAPMailerService implements MailerService
     }
 
     @Override
-    public void getMail() {
+    @Transactional
+    public void parseMail() {
         List<User> users = this.settingsService.getMailSettingsByUsers();
         users.forEach(user -> {
             String messageId = getLastSavedMessageId(user.getId());
@@ -89,6 +90,7 @@ public class IMAPMailerService implements MailerService
         String mailPort = settingsService.getSettingValue(user.getSettingsList(), "mailport");
         String mailUser = settingsService.getSettingValue(user.getSettingsList(), "username");
         String mailPassword = settingsService.getSettingValue(user.getSettingsList(), "password");
+        boolean isMailSSL = "true".equals(settingsService.getSettingValue(user.getSettingsList(), "mailssl"));
 
         if (!StringUtils.hasText(mailServer) || !StringUtils.hasText(mailPort)) {
             return;
@@ -99,7 +101,7 @@ public class IMAPMailerService implements MailerService
         final jakarta.mail.Session session = jakarta.mail.Session.getInstance(properties);
         try
         {
-            Store store = session.getStore("imaps");
+            Store store = session.getStore("imap" + (isMailSSL ? "s" : ""));
             store.connect(mailServer, Integer.parseInt(mailPort), mailUser, mailPassword);
 
             Folder object = store.getFolder("INBOX");
@@ -160,6 +162,9 @@ public class IMAPMailerService implements MailerService
     }
 
     private void preprocessFinalSteps(User user, Mail mail) {
+        if (mail.getRule().getRuleActions() == null) {
+            return;
+        }
         Optional<RuleAction> moveToFolderAction =  mail.getRule().getRuleActions().stream().filter(it -> "MOVE_TO_FOLDER".equals(it.getAction())).findFirst();
         String moveActionTarget = moveToFolderAction.isPresent() ? moveToFolderAction.get().getAction_target() : "";
         for (RuleAction ruleAction : mail.getRule().getRuleActions()) {

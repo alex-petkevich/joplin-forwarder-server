@@ -1,4 +1,4 @@
-package by.homesite.joplinforwarder.service.mailer.mapper;
+package by.homesite.joplinforwarder.service.parser.mapper;
 
 import java.io.IOException;
 import java.time.ZoneOffset;

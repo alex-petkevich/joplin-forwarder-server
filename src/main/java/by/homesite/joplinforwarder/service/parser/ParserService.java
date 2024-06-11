@@ -1,11 +1,11 @@
-package by.homesite.joplinforwarder.service.mailer;
+package by.homesite.joplinforwarder.service.parser;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public interface MailerService
+public interface ParserService
 {
-	void getMail();
+	void parseMail();
 
 	void deleteOldItems(int purgeMailsPeriod);
 }
