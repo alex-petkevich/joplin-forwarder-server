@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import by.homesite.joplinforwarder.util.ControllerUtil;
+import by.homesite.joplinforwarder.util.GlobUtil;
 import jakarta.validation.Valid;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class MailsController
 	{
 		User user = userService.getCurrentUser();
 
-		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT, ControllerUtil.getSortOrder(sort));
+		Pageable paging = PageRequest.of(page, MAIL_RECORDS_LIMIT, GlobUtil.getSortOrder(sort));
 		
 		Page<MailResponse> result = mailService.getUserMails(user.getId(), fsubject, ftext, fattachments, fexported, paging).map(mailMapper::toEntity);
 

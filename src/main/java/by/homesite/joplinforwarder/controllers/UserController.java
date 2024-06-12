@@ -3,7 +3,7 @@ package by.homesite.joplinforwarder.controllers;
 import by.homesite.joplinforwarder.controllers.dto.request.UserRequest;
 import by.homesite.joplinforwarder.controllers.dto.response.RoleResponse;
 import by.homesite.joplinforwarder.controllers.mapper.RoleMapper;
-import by.homesite.joplinforwarder.util.ControllerUtil;
+import by.homesite.joplinforwarder.util.GlobUtil;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -110,7 +110,7 @@ public class UserController {
 									   @RequestParam(defaultValue = "0") int page,
 									   @RequestParam(defaultValue = "createdAt-desc") String sort) {
 
-		Pageable paging = PageRequest.of(page, 20, ControllerUtil.getSortOrder(sort));
+		Pageable paging = PageRequest.of(page, 20, GlobUtil.getSortOrder(sort));
 
 		Page<UserResponse> users = userService.getUsers(name, username, email, role, active, paging).map(userMapper::toEntity);
 

@@ -1,11 +1,11 @@
 package by.homesite.joplinforwarder.service.storage;
 
+import static by.homesite.joplinforwarder.util.GlobUtil.settingValue;
+
 import by.homesite.joplinforwarder.model.Mail;
 import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.SettingsService;
-import by.homesite.joplinforwarder.service.dto.JoplinAttachment;
 import by.homesite.joplinforwarder.service.dto.JoplinItem;
-import by.homesite.joplinforwarder.service.dto.JoplinNode;
 import by.homesite.joplinforwarder.service.storage.client.DavClient;
 import by.homesite.joplinforwarder.service.storage.client.dto.DavFile;
 import by.homesite.joplinforwarder.service.storage.client.dto.DavFileInputStream;
@@ -13,7 +13,7 @@ import by.homesite.joplinforwarder.service.storage.client.dto.DavList;
 import by.homesite.joplinforwarder.service.storage.mapper.JoplinItemMailMapper;
 import by.homesite.joplinforwarder.util.JoplinParserUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
+
 import org.apache.jackrabbit.webdav.DavException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,15 +22,9 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -134,9 +128,9 @@ public class WebDAVStorageService extends AbstractStorageService {
             return davClient;
         }
 
-        String joplinserverdavurl = settingsService.getSettingValue(user.getSettingsList(), "joplinserverdavurl");
-        String joplinserverdavusername = settingsService.getSettingValue(user.getSettingsList(), "joplinserverdavusername");
-        String joplinserverdavpassword = settingsService.getSettingValue(user.getSettingsList(), "joplinserverdavpassword");
+        String joplinserverdavurl = settingValue(user, "joplinserverdavurl");
+        String joplinserverdavusername = settingValue(user, "joplinserverdavusername");
+        String joplinserverdavpassword = settingValue(user, "joplinserverdavpassword");
 
         if (StringUtils.hasText(joplinserverdavurl) && StringUtils.hasText(joplinserverdavusername) && StringUtils.hasText(joplinserverdavpassword)) {
             URI url = URI.create(joplinserverdavurl);

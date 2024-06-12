@@ -20,13 +20,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import static by.homesite.joplinforwarder.util.GlobUtil.settingValue;
 import static java.util.Map.entry;
 
 public abstract class AbstractStorageService implements StorageService {
@@ -65,7 +64,7 @@ public abstract class AbstractStorageService implements StorageService {
         if (!StringUtils.hasText(saveInParentId)) {
             return "";
         } else {
-            String rootParentNodeId = getParentNodeId(user, mail, "");
+            String rootParentNodeId = getParentNodeId(user, "");
 
             List<JoplinItem> items = getDBItemsList(user);
             Optional<JoplinItem> item = items.stream().filter(it ->
@@ -167,7 +166,7 @@ public abstract class AbstractStorageService implements StorageService {
     protected String storeNewItem(User user, Mail mail, String parentId) {
 
         if (mail.getRule() != null && StringUtils.hasText(parentId)) {
-            parentId = getParentNodeId(user, mail, mail.getRule().getSave_in_parent_id());
+            parentId = getParentNodeId(user, mail.getRule().getSave_in_parent_id());
         }
 
         JoplinItem jNode = mailMapper.toDto(mail);
@@ -195,12 +194,12 @@ public abstract class AbstractStorageService implements StorageService {
         return result.toString();
     }
 
-    private String getParentNodeId(User user, Mail mail, String parentNodeId)
+    private String getParentNodeId(User user, String parentNodeId)
     {
         List<JoplinItem> items = getDBItemsList(user);
 
         String settingsParentId = "";
-        String settingsNode = settingsService.getSettingValue(user.getSettingsList(), "joplinserverparentnode");
+        String settingsNode = settingValue(user, "joplinserverparentnode");
         if (StringUtils.hasText(settingsNode)) {
             Optional<JoplinItem> settingsParentNode = items.stream().filter(it ->
                     it.getType_() == JoplinParserUtil.TYPE_NODE && settingsNode.trim().equalsIgnoreCase(it.getContent().trim())

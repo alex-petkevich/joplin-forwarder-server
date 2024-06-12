@@ -81,7 +81,7 @@ public class User
 	private Set<Role> roles = new HashSet<>();
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-	private List<Settings> settingsList;
+	private List<Settings> settings;
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Rule> rules;

@@ -1,6 +1,7 @@
 package by.homesite.joplinforwarder.service.parser;
 
 import static by.homesite.joplinforwarder.config.Constants.CONNECT_TIMEOUT;
+import static by.homesite.joplinforwarder.util.GlobUtil.settingValue;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Mail;
@@ -86,11 +87,11 @@ public class IMAPParserService implements ParserService
     }
 
     private void fetchAndSaveMails(User user, String lastSavedMessageId) {
-        String mailServer = settingsService.getSettingValue(user.getSettingsList(), "mailserver");
-        String mailPort = settingsService.getSettingValue(user.getSettingsList(), "mailport");
-        String mailUser = settingsService.getSettingValue(user.getSettingsList(), "username");
-        String mailPassword = settingsService.getSettingValue(user.getSettingsList(), "password");
-        boolean isMailSSL = "true".equals(settingsService.getSettingValue(user.getSettingsList(), "mailssl"));
+        String mailServer = settingValue(user, "mailserver");
+        String mailPort = settingValue(user, "mailport");
+        String mailUser = settingValue(user, "username");
+        String mailPassword = settingValue(user, "password");
+        boolean isMailSSL = "true".equals(settingValue(user, "mailssl"));
 
         if (!StringUtils.hasText(mailServer) || !StringUtils.hasText(mailPort)) {
             return;

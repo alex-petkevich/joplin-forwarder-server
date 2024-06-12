@@ -26,6 +26,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
 
+import static by.homesite.joplinforwarder.util.GlobUtil.settingValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -60,7 +61,7 @@ public class IMAPParserServiceTests {
         User user = new User(); // Create a user for testing
         user.setId(12);
         List<Settings> settingsList = Collections.singletonList(new Settings());
-        user.setSettingsList(settingsList);
+        user.setSettings(settingsList);
         Mail mail = new Mail(); // Create a mail for testing
         mail.setMessageId("testMsgId");
         mail.setId(123);
@@ -79,7 +80,7 @@ public class IMAPParserServiceTests {
 
         // Mock 
         when(settingsService.getMailSettingsByUsers()).thenReturn(Collections.singletonList(user));
-        when(settingsService.getSettingValue(eq(settingsList), anyString())).thenReturn(String.valueOf((int) (Math.random() * 1000)));
+        when(settingValue(eq(user), anyString())).thenReturn(String.valueOf((int) (Math.random() * 1000)));
         when(mailRepository.findTop1ByUserIdOrderByReceivedDesc(12)).thenReturn(mail);
         try (MockedStatic<Session> session = Mockito.mockStatic(jakarta.mail.Session.class)) {
             session.when(() -> jakarta.mail.Session.getInstance(any())).thenReturn(sessionManager);

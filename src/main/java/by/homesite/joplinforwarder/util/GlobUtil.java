@@ -2,12 +2,16 @@ package by.homesite.joplinforwarder.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 
-public class ControllerUtil
+import by.homesite.joplinforwarder.model.Settings;
+import by.homesite.joplinforwarder.model.User;
+
+public class GlobUtil
 {
-	private ControllerUtil() {
+	private GlobUtil() {
 		// empty
 	}
 
@@ -24,5 +28,13 @@ public class ControllerUtil
 		}
 		return Sort.by(result);
 	}
+
+    public static String settingValue(User user, String name) {
+        Optional<Settings> sett = user.getSettings().stream().filter(it -> name.equals(it.getName())).findFirst();
+        if (sett.isPresent()) {
+            return sett.get().getValue();
+        }
+        return "";
+    }
 
 }

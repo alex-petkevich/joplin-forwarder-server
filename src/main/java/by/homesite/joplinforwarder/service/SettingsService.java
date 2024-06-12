@@ -1,5 +1,7 @@
 package by.homesite.joplinforwarder.service;
 
+import static by.homesite.joplinforwarder.util.GlobUtil.settingValue;
+
 import by.homesite.joplinforwarder.config.ApplicationProperties;
 import by.homesite.joplinforwarder.model.Settings;
 import by.homesite.joplinforwarder.model.User;
@@ -9,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class SettingsService
@@ -54,19 +55,11 @@ public class SettingsService
 		List<User> users = settingsRepository.getUserWithEmailSettings();
 
 		return users.stream().filter(it -> {
-			String lastTimeProcessed = getSettingValue(it.getSettingsList(), "lasttime_mail_processed");
-			String period = getSettingValue(it.getSettingsList(), "period");
+			String lastTimeProcessed = settingValue(it, "lasttime_mail_processed");
+			String period = settingValue(it, "period");
 			return "".equals(lastTimeProcessed) 
                     || null == lastTimeProcessed
 					|| OffsetDateTime.now().toEpochSecond() > Long.parseLong(lastTimeProcessed) + Long.parseLong(period) * 60;
 		}).toList();
-	}
-
-	public String getSettingValue(List<Settings> settingsList, String name) {
-		Optional<Settings> sett = settingsList.stream().filter(it -> name.equals(it.getName())).findFirst();
-		if (sett.isPresent()) {
-			return sett.get().getValue();
-		}
-		return "";
 	}
 }
