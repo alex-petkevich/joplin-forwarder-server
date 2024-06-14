@@ -1,5 +1,6 @@
 package by.homesite.joplinforwarder.model;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +36,7 @@ import lombok.Setter;
 				@UniqueConstraint(columnNames = "username"),
 				@UniqueConstraint(columnNames = "email")
 		})
-public class User
+public class User implements Serializable 
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

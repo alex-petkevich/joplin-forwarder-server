@@ -20,6 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import by.homesite.joplinforwarder.config.ApplicationProperties;
@@ -32,6 +33,7 @@ import by.homesite.joplinforwarder.security.jwt.JwtUtils;
 import by.homesite.joplinforwarder.security.services.UserDetailsImpl;
 
 @Service
+@Transactional
 public class UserService
 {
 	public static final String SUCCESSFUL = "successful";

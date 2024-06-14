@@ -1,8 +1,10 @@
 package by.homesite.joplinforwarder.model;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,7 +25,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RuleCondition
+@JsonIgnoreProperties({"hibernateLazyInitializer"})
+public class RuleCondition implements Serializable 
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

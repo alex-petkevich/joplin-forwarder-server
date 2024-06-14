@@ -16,6 +16,8 @@ import by.homesite.joplinforwarder.model.User;
 import by.homesite.joplinforwarder.service.RulesService;
 import by.homesite.joplinforwarder.service.TranslateService;
 import by.homesite.joplinforwarder.service.UserService;
+
+import org.hibernate.Hibernate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -158,10 +160,12 @@ public class RulesController
                   .badRequest()
                   .body(new MessageResponse(translate.get("rules.conditions.missing-parameters")));
         }
-        
+
+        List<RuleAction> ruleActions = rulesService.getRule(ruleAction.getRule().getId(), user.getId()).getRuleActions();
         rulesService.deleteRuleAction(id);
-        
-        return ResponseEntity.ok(rulesService.getRule(ruleAction.getRule().getId(), user.getId()).getRuleActions());
+        ruleActions.remove(ruleAction);
+
+        return ResponseEntity.ok(ruleActions);
     }
 
     @DeleteMapping("/conditions/{id}")
@@ -177,8 +181,10 @@ public class RulesController
                   .body(new MessageResponse(translate.get("rules.conditions.missing-parameters")));
         }
 
+        List<RuleCondition> ruleConditions = rulesService.getRule(ruleCondition.getRule().getId(), user.getId()).getRuleConditions();
         rulesService.deleteRuleCondition(id);
-
-        return ResponseEntity.ok(rulesService.getRule(ruleCondition.getRule().getId(), user.getId()).getRuleConditions());
+        ruleConditions.remove(ruleCondition);
+        
+        return ResponseEntity.ok(ruleConditions);
     }
 }

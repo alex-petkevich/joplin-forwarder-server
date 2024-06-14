@@ -20,8 +20,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "rules")
@@ -33,7 +37,8 @@ import java.util.List;
 @Where(clause = "deleted=0")
 @FilterDef(name = "deletedProductFilter", parameters = @ParamDef(name = "isDeleted", type = Boolean.class))
 @Filter(name = "deletedProductFilter", condition = "deleted = :isDeleted")
-public class Rule
+@JsonIgnoreProperties({"hibernateLazyInitializer"})
+public class Rule implements Serializable 
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

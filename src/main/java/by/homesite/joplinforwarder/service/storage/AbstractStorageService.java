@@ -97,11 +97,14 @@ public abstract class AbstractStorageService implements StorageService {
      */
     protected abstract void storeJoplinNodeInStorage(User user, byte[] fileContent, String fileName);
 
-    protected String createJoplinNode(User user, String saveInParentId) {
+    protected String createJoplinNode(User user, String nodeId, String parentNodeId) {
         JoplinNode joplinNode = new JoplinNode();
 
         joplinNode.setId(generateFileName());
-        joplinNode.setName(saveInParentId);
+        joplinNode.setName(nodeId);
+        if (StringUtils.hasText(parentNodeId)) {
+            joplinNode.setParentId(parentNodeId);
+        }
         joplinNode.setCreatedTime(LocalDateTime.now());
         joplinNode.setUpdatedTime(LocalDateTime.now());
         joplinNode.setUserCreatedTime(LocalDateTime.now());
@@ -165,7 +168,7 @@ public abstract class AbstractStorageService implements StorageService {
 
     protected String storeNewItem(User user, Mail mail, String parentId) {
 
-        if (mail.getRule() != null && StringUtils.hasText(parentId)) {
+        if (mail.getRule() != null) {
             parentId = getParentNodeId(user, mail.getRule().getSave_in_parent_id());
         }
 
@@ -200,13 +203,13 @@ public abstract class AbstractStorageService implements StorageService {
 
         String settingsParentId = "";
         String settingsNode = settingValue(user, "joplinserverparentnode");
-        if (StringUtils.hasText(settingsNode)) {
+        if (StringUtils.hasText(settingsNode)) {    
             Optional<JoplinItem> settingsParentNode = items.stream().filter(it ->
                     it.getType_() == JoplinParserUtil.TYPE_NODE && settingsNode.trim().equalsIgnoreCase(it.getContent().trim())
             ).findFirst();
 
             if (settingsParentNode.isEmpty()) {
-                settingsParentId = createJoplinNode(user, settingsParentId);
+                settingsParentId = createJoplinNode(user, settingsParentId, "");
             } else {
                 settingsParentId = settingsParentNode.get().getId();
             }
@@ -220,7 +223,7 @@ public abstract class AbstractStorageService implements StorageService {
                 it.getType_() == JoplinParserUtil.TYPE_NODE && parentNodeId.trim().equalsIgnoreCase(it.getContent().trim())
         ).findFirst();
         if (parentNode.isEmpty()) {
-            return createJoplinNode(user, settingsParentId);
+            return createJoplinNode(user, parentNodeId, settingsParentId);
         } else {
             return parentNode.get().getId();
         }

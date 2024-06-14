@@ -134,12 +134,12 @@ public class IMAPParserService implements ParserService
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
                     mailRepository.save(mail);
 
+                    String savedSubject = mail.getSubject();
                     preprocessFinalSteps(user, mail);
 
                     String processId = storageService.storeRecord(user, mail);
                     
-                    mail = mailRepository.getReferenceById(Long.valueOf(mail.getId()));
-                    
+                    mail.setSubject(savedSubject);
                     mail.setProcessedId(processId);
                     processFinalSteps(user, mail, (IMAPMessage) mess, store);
                 }
@@ -168,13 +168,17 @@ public class IMAPParserService implements ParserService
         }
         Optional<RuleAction> moveToFolderAction =  mail.getRule().getRuleActions().stream().filter(it -> "MOVE_TO_FOLDER".equals(it.getAction())).findFirst();
         String moveActionTarget = moveToFolderAction.isPresent() ? moveToFolderAction.get().getAction_target() : "";
+        boolean processed = false;
         for (RuleAction ruleAction : mail.getRule().getRuleActions()) {
             switch (ruleAction.getAction()) {
                 case "RENAME" -> {
                     mail.setSubject(replaceTemplateVariables(mail.getSubject(), ruleAction.getAction_target(), moveActionTarget));
+                    processed = true;
                 }
-                default -> log.info("No preprocessor rule defined");
             }
+        }
+        if (!processed) {
+            log.error("No preprocessor rule defined");
         }
     }
 
@@ -198,36 +202,43 @@ public class IMAPParserService implements ParserService
     }
 
     private void processFinalSteps(User user, Mail mail, IMAPMessage mess, Store store) {
+        boolean processed = false;
         for (RuleAction ruleAction : mail.getRule().getRuleActions()) {
             switch (ruleAction.getAction()) {
-            case "MARK_READ" -> {
-                try {
-                    mess.setFlag(Flags.Flag.SEEN, true);
-                } catch (MessagingException e) {
-                    log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                }
-            }
-            case "DELETE" -> {
-                try {
-                    mess.setFlag(Flags.Flag.DELETED, true);
-                } catch (MessagingException e) {
-                    log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
-                }
-            }
-            case "MOVE_TO_FOLDER" -> {
-                if (StringUtils.hasText(ruleAction.getAction_target())) {
+                case "MARK_READ" -> {
                     try {
-                        IMAPFolder object = (IMAPFolder) store.getFolder(ruleAction.getAction_target());
-                        Message[] msgs = new Message[1];
-                        msgs[0] = mess;
-                        object.moveMessages(msgs, object);
+                        mess.setFlag(Flags.Flag.SEEN, true);
+                        processed = true;
                     } catch (MessagingException e) {
-                        log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                        log.error(String.format("Can not set flag SEEN to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                    }
+                }
+                case "DELETE" -> {
+                    try {
+                        mess.setFlag(Flags.Flag.DELETED, true);
+                        processed = true;
+                    } catch (MessagingException e) {
+                        log.error(String.format("Can not set flag DELETED to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                    }
+                }
+                case "MOVE_TO_FOLDER" -> {
+                    if (StringUtils.hasText(ruleAction.getAction_target())) {
+                        try {
+                            IMAPFolder object = (IMAPFolder) store.getFolder(ruleAction.getAction_target());
+                            Message[] msgs = new Message[1];
+                            msgs[0] = mess;
+                            object.moveMessages(msgs, object);
+                            processed = true;
+                        } catch (MessagingException e) {
+                            log.error(String.format("Can not move mail message to the user %s message: %s", user.getUsername(), mail.getSubject()));
+                        }
                     }
                 }
             }
-            default -> log.error("No postprocessor rule defined");
-            }
+        }
+        
+        if (!processed) {
+            log.error("No postprocessor rule defined");
         }
 
         mail.setConverted(1);
