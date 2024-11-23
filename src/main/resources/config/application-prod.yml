@@ -48,21 +48,21 @@ management:
   endpoints:
     web:
       cors:
-        allowed-origins: "https://fw.homesite.by,http://fw.abcdef.at/"
+        allowed-origins: "https://fw.homesite.by,http://fw.abcdef.at/,https://joplin.abcdef.at/"
 
 # App Properties
 application:
   general:
-    baseUrl: 'https://fw.homesite.by/'
+    baseUrl: 'https://joplin.abcdef.at/'
     crawler-schedulers: true
   mail:
     from: support-joplin@homesite.by
-    baseUrl: 'https://fw.homesite.by/'
+    baseUrl: 'https://joplin.abcdef.at/'
   upload:
-    local-path: '/mnt/vol1/www/joplin/data/'
+    local-path: '/var/www/joplin/data/'
     upload-dir: uploads
   cors:
-    allowed-origins: 'https://fw.homesite.by/,http://fw.abcdef.at/'
+    allowed-origins: 'https://fw.homesite.by/,http://fw.abcdef.at/,https://joplin.abcdef.at/'
   cache:
     max-entries: 1000
     time-to-live-seconds: 3600
