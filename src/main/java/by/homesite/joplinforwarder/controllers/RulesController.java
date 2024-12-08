@@ -108,6 +108,15 @@ public class RulesController
 
 		return ResponseEntity.ok(ruleMapper.toEntity(result));
 	}
+    
+	@PostMapping("/copy/{id}")
+	public ResponseEntity<?> copyRule(@Valid @PathVariable String id)
+	{
+		User user = userService.getCurrentUser();
+		rulesService.copyRule(Integer.parseInt(id), user.getId());
+
+		return ResponseEntity.ok().build();
+	}
 
     @PostMapping("/actions/")
     public ResponseEntity<?> addAction(@Valid @RequestBody RuleActionRequest ruleActionRequest)
@@ -137,7 +146,7 @@ public class RulesController
         if (rule == null || rule.getId() == null) {
             return ResponseEntity
                   .badRequest()
-                  .body(new MessageResponse(translate.get("rules.conditions.missing-parameters")));
+                  .body(new MessageResponse(translate.get("rules.conditions.missing-parameters") + "Rule ID"));
         }
 
         RuleCondition ruleCondition = ruleConditionRequestMapper.toDto(ruleConditionRequest);

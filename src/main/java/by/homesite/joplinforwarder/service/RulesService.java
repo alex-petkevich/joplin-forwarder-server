@@ -13,6 +13,8 @@ import by.homesite.joplinforwarder.repository.RulesRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,14 +29,14 @@ public class RulesService
     
 	private final RuleConditionsRepository ruleConditionsRepository;
 
-	private final ApplicationProperties applicationProperties;
+    private final TranslateService translateService;
 
-	public RulesService(RulesRepository rulesRepository, RulesActionsRepository ruleActionsRepository, RuleConditionsRepository ruleConditionsRepository, ApplicationProperties applicationProperties) {
+    public RulesService(RulesRepository rulesRepository, RulesActionsRepository ruleActionsRepository, RuleConditionsRepository ruleConditionsRepository, ApplicationProperties applicationProperties, TranslateService translateService) {
 		this.rulesRepository = rulesRepository;
         this.ruleActionsRepository = ruleActionsRepository;
         this.ruleConditionsRepository = ruleConditionsRepository;
-        this.applicationProperties = applicationProperties;
-	}
+        this.translateService = translateService;
+    }
 
 	public Rule saveRule(User user, Rule rule)
 	{
@@ -67,17 +69,53 @@ public class RulesService
             ruleConditionsRepository.deleteByRuleId(id);
 		}
 	}
+    
+	public void copyRule(Integer id, Integer userId)
+	{
+		Rule rule = rulesRepository.getByIdAndUserId(id, userId);
+		if (rule != null) {
+            Rule newRule = new Rule();
+            newRule.setName(rule.getName() + " - " + translateService.get("rules.copy-title"));
+            newRule.setActive(rule.getActive());
+            newRule.setProcessed(0);
+            newRule.setDeleted(rule.getDeleted());
+            newRule.setPriority(rule.getPriority());
+            newRule.setSave_in(rule.getSave_in());
+            newRule.setSave_in_parent_id(rule.getSave_in_parent_id());
+            newRule.setStop_process_rules(rule.getStop_process_rules());
+            newRule.setCreated_at(OffsetDateTime.now());
+            Rule finalNewRule = this.saveRule(rule.getUser(), newRule);
 
-	public boolean meetsUserRule(Mail mail, User user) {
-		return true;
+            rule.getRuleConditions().forEach(condition ->{
+                RuleCondition newCondition = new RuleCondition();
+                newCondition.setType(condition.getType());
+                newCondition.setComparison_method(condition.getComparison_method());
+                newCondition.setComparison_text(condition.getComparison_text());
+                newCondition.setCond(condition.getCond());
+                newCondition.setRule(finalNewRule);
+                newCondition.setCreated_at(OffsetDateTime.now());
+                newCondition.setLast_modified_at(OffsetDateTime.now());
+                ruleConditionsRepository.save(newCondition);
+            });
+            
+            rule.getRuleActions().forEach(action ->{
+                RuleAction newAction = new RuleAction();
+                newAction.setAction(action.getAction());
+                newAction.setAction_target(action.getAction_target());
+                newAction.setRule(newRule);
+                newAction.setCreated_at(OffsetDateTime.now());
+                newAction.setLast_modified_at(OffsetDateTime.now());
+                ruleActionsRepository.save(newAction);
+            });
+        }
 	}
-
+    
 	public Rule getUserRule(Mail mail, User user)
 	{
 		List<Rule> rules = getUserActiveRules(user.getId());
 
-        Boolean meets = null;
 		for (Rule rule : rules) {
+            Boolean meets = null;
             for (RuleCondition ruleCondition: rule.getRuleConditions()) {
                 boolean meetsRule = switch (ruleCondition.getType()) {
                     case "FROM" -> compareField(ruleCondition, mail.getSender());
@@ -87,14 +125,12 @@ public class RulesService
                     case "ATTACH" -> compareField(ruleCondition, mail.getAttachments());
                     default -> false;
                 };
-                if (meets == null) {
-                    meets = meetsRule;
-                }
-                meets =  ruleCondition.getCond() != null && ruleCondition.getCond() == 1 ? meets & meetsRule : meets | meetsRule;
+                meets =  ruleCondition.getCond() != null && ruleCondition.getCond() == 1 && meets != null ? meets & meetsRule : Boolean.TRUE.equals(
+                      meets) | meetsRule;
             }
 
 			if (Boolean.TRUE.equals(meets)) {
-				return rule;
+                return rule;
 			}
 		}
 

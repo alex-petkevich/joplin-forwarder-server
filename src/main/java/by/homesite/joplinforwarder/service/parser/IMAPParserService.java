@@ -132,7 +132,6 @@ public class IMAPParserService implements ParserService
                 {
                     mail = mailRepository.save(mail);
                     mail.setAttachments(saveAttachements(user, MailUtil.getFilesFromMessage(mess), mail.getId()));
-                    mailRepository.save(mail);
 
                     String savedSubject = mail.getSubject();
                     preprocessFinalSteps(user, mail);
@@ -142,6 +141,7 @@ public class IMAPParserService implements ParserService
                     mail.setSubject(savedSubject);
                     mail.setProcessedId(processId);
                     processFinalSteps(user, mail, (IMAPMessage) mess, store);
+                    log.info(String.format("Message %s saved for user %s", mail.getSubject(), user.getUsername()));
                 }
                 else
                 {
